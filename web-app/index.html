@@ -1,9 +1,169 @@
-<!-- In HTML Comments are written like this -->
-<!-- They can all be removed for your apps -->
-<!doctype html> <!-- This first line tells browsers to expect modern standard html 5 -->
-<html lang="en-gb"> <!-- This is indicates the page is written in British English, useful for accessibility -->
-<meta charset="utf-8"> <!-- This indicates how the file is encoded. utf-8 is standard -->
-<title>Your Web-app Title</title> <!-- All pages need a title, this will be displayed in the browser's title bar -->
-<link rel="stylesheet" href="default.css"> <!-- Import style sheet – default.css -->
-<link rel="icon" href="./assets/favicon.png"> <!-- Import 'Favorites Icon' – favicon.png -->
-<script type="module" src="main.js"></script> <!-- Load the main script. Must be type="module". Have only one of these -->
+<!doctype html>
+<html lang="en-gb">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="Imperium – an 8x8 Monopoly-style board game set at Imperial College London.">
+    <title>Imperium – Board Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="default.css">
+    <link rel="icon" href="./assets/favicon.png">
+    <script type="module" src="main.js"></script>
+</head>
+
+<body>
+
+    <!-- ====== HOME SCREEN ====== -->
+    <div id="home-screen" class="home-screen" role="dialog" aria-modal="true" aria-label="Game setup">
+        <div class="home-card">
+            <div class="home-logo">
+                <span class="home-logo-badge">IMPERIUM</span>
+                <p class="home-logo-sub">Imperial College London · Board Game</p>
+            </div>
+
+            <h2 class="home-section-title">How many players?</h2>
+            <div class="player-count-grid" id="player-count-grid" role="group" aria-label="Select number of players">
+            </div>
+
+            <p class="home-selected-label" id="home-selected-label">Choose a number above to continue</p>
+
+            <!-- Player setup rows (name + icon picker) — populated by JS -->
+            <div class="home-names" id="home-names" aria-live="polite"></div>
+
+            <button id="home-start-btn" class="home-start-btn" disabled aria-disabled="true">
+                Start Game
+            </button>
+
+            <p class="home-money-hint" id="home-money-hint">
+                Each player starts with <strong>£1,500</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- ====== GAME SCREEN ====== -->
+    <div id="game-screen" class="game-screen hidden">
+
+        <!-- Board -->
+        <div class="board-wrapper">
+            <div class="board-background"></div>
+            <div class="board" id="board">
+
+                <!-- ── Bottom Row (Right → Left, tiles 1–7) ── -->
+                <div id="tile-1" class="tile corner" style="grid-row:8;grid-column:8;" data-name="Student_Finance">
+                </div>
+                <div id="tile-2" class="tile bottom-edge" style="grid-row:8;grid-column:7;" data-name="Huxley"></div>
+                <div id="tile-3" class="tile bottom-edge" style="grid-row:8;grid-column:6;" data-name="Bills_Due"></div>
+                <div id="tile-4" class="tile bottom-edge" style="grid-row:8;grid-column:5;"
+                    data-name="Westbound_Station"></div>
+                <div id="tile-5" class="tile bottom-edge" style="grid-row:8;grid-column:4;" data-name="Blackett"></div>
+                <div id="tile-6" class="tile bottom-edge" style="grid-row:8;grid-column:3;" data-name="Event_Card1">
+                </div>
+                <div id="tile-7" class="tile bottom-edge" style="grid-row:8;grid-column:2;" data-name="Roderic_Hill">
+                </div>
+
+                <!-- ── Left Column (Bottom → Top, tiles 8–14) ── -->
+                <div id="tile-8" class="tile corner" style="grid-row:8;grid-column:1;" data-name="Gap_Year"></div>
+                <div id="tile-9" class="tile left-edge" style="grid-row:7;grid-column:1;" data-name="Science_Museum">
+                </div>
+                <div id="tile-10" class="tile left-edge" style="grid-row:6;grid-column:1;" data-name="SAF"></div>
+                <div id="tile-11" class="tile left-edge" style="grid-row:5;grid-column:1;" data-name="Business_School">
+                </div>
+                <div id="tile-12" class="tile left-edge" style="grid-row:4;grid-column:1;" data-name="Event_Card2">
+                </div>
+                <div id="tile-13" class="tile left-edge" style="grid-row:3;grid-column:1;" data-name="Ace_Workshop">
+                </div>
+                <div id="tile-14" class="tile left-edge" style="grid-row:2;grid-column:1;" data-name="Dyson_Building">
+                </div>
+
+                <!-- ── Top Row (Left → Right, tiles 15–21) ── -->
+                <div id="tile-15" class="tile corner" style="grid-row:1;grid-column:1;" data-name="Free_Parking"></div>
+                <div id="tile-16" class="tile top-edge" style="grid-row:1;grid-column:2;" data-name="Sherfield_Walkway">
+                </div>
+                <div id="tile-17" class="tile top-edge" style="grid-row:1;grid-column:3;" data-name="Event_Card3"></div>
+                <div id="tile-18" class="tile top-edge" style="grid-row:1;grid-column:4;"
+                    data-name="Abdus_Salam_Library"></div>
+                <div id="tile-19" class="tile top-edge" style="grid-row:1;grid-column:5;" data-name="Eastbound_Station">
+                </div>
+                <div id="tile-20" class="tile top-edge" style="grid-row:1;grid-column:6;" data-name="Hammersmith"></div>
+                <div id="tile-21" class="tile top-edge" style="grid-row:1;grid-column:7;"
+                    data-name="Charing_Cross_Hospital"></div>
+
+                <!-- ── Right Column (Top → Bottom, tiles 22–28) ── -->
+                <div id="tile-22" class="tile corner" style="grid-row:1;grid-column:8;" data-name="You_Fail"></div>
+                <div id="tile-23" class="tile right-edge" style="grid-row:2;grid-column:8;" data-name="White_City">
+                </div>
+                <div id="tile-24" class="tile right-edge" style="grid-row:3;grid-column:8;"
+                    data-name="Natural_History_Museum"></div>
+                <div id="tile-25" class="tile right-edge" style="grid-row:4;grid-column:8;" data-name="Queens_Tower">
+                </div>
+                <div id="tile-26" class="tile right-edge" style="grid-row:5;grid-column:8;" data-name="Event_Card4">
+                </div>
+                <div id="tile-27" class="tile right-edge" style="grid-row:6;grid-column:8;" data-name="Rent_Due"></div>
+                <div id="tile-28" class="tile right-edge" style="grid-row:7;grid-column:8;"
+                    data-name="Royal_Albert_Hall"></div>
+
+                <!-- ── Board Center — logo + event card deck ── -->
+                <div class="center" id="board-center">
+                    <h1>IMPERIUM</h1>
+                    <div class="event-deck-area" id="event-deck-area">
+                        <div class="event-deck-stack">
+                            <div class="event-deck-card"></div>
+                            <div class="event-deck-card"></div>
+                            <div class="event-deck-card"></div>
+                        </div>
+                        <span class="event-deck-label">Event Cards</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ── Right Sidebar — Player Panel ── -->
+        <aside class="player-panel" id="player-panel" aria-label="Players">
+            <div class="panel-header">
+                <span class="panel-title">Players</span>
+                <span class="panel-round" id="panel-round">Round 1</span>
+            </div>
+
+            <!-- Scrollable player cards -->
+            <div class="panel-players" id="panel-players"></div>
+
+            <!-- Dice + action buttons -->
+            <div class="panel-actions" id="panel-actions">
+                <div class="dice-display" id="dice-display">
+                    <div class="die" id="die-face">?</div>
+                </div>
+                <button id="btn-roll" class="action-btn action-btn--roll">🎲 Roll Dice</button>
+                <button id="btn-buy" class="action-btn action-btn--buy  hidden">Buy Property</button>
+                <button id="btn-upgrade" class="action-btn action-btn--buy hidden">Buy House</button>
+                <button id="btn-end-turn" class="action-btn action-btn--end  hidden">End Turn</button>
+                <button id="btn-pay-jail" class="action-btn action-btn--jail hidden">Pay £50 Buyout</button>
+                <button id="btn-roll-jail" class="action-btn action-btn--jail hidden">Roll to Escape (need 6)</button>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- ====== MODAL OVERLAY (property cards + event cards) ====== -->
+    <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal-content" id="modal-content"></div>
+    </div>
+
+    <!-- ====== TOAST NOTIFICATIONS ====== -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- ====== WIN SCREEN ====== -->
+    <div id="win-screen" class="win-screen hidden">
+        <div class="win-card">
+            <div class="win-emoji" id="win-emoji">🏆</div>
+            <h2 class="win-name" id="win-name">Winner!</h2>
+            <p class="win-money" id="win-money"></p>
+            <button class="home-start-btn" id="win-home-btn" onclick="location.reload()">Back to Home</button>
+        </div>
+    </div>
+
+</body>
+
+</html>
