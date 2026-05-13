@@ -230,6 +230,9 @@ body {
     color: var(--text-dim);
 }
 
+
+
+
 /* Icon picker grid */
 .icon-picker-label {
     font-size: 0.7rem;
@@ -314,6 +317,9 @@ body {
 .home-money-hint strong {
     color: #2ecc71;
 }
+
+
+
 
 /* ====== GAME SCREEN ====== */
 .game-screen {
