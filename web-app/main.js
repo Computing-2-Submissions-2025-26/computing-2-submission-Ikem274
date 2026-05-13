@@ -408,7 +408,7 @@ const updateActionButtons = () => {
                 const ownerIndex = gameState.players.indexOf(owner);
                 const ownsSet = Api.ownsFullSet(gameState, ownerIndex, tile.colourGroup);
                 const level = gameState.propertyLevels[player.position] || 0;
-                if (ownsSet && tile.upgradeCost && level < 3 && player.money >= tile.upgradeCost) {
+                if (ownsSet && tile.upgradeCost && level < 3) {
                     btnUpgrade.classList.remove("hidden");
                     btnUpgrade.textContent = `Buy House — £${tile.upgradeCost}`;
                 }
