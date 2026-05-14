@@ -422,6 +422,31 @@ body {
     padding-left: 10px;
 }
 
+/* ====== UPGRADE INDICATORS ====== */
+.tile-upgrade-indicator {
+    position: absolute;
+    display: flex;
+    gap: 2px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.top-edge .tile-upgrade-indicator,
+.bottom-edge .tile-upgrade-indicator {
+    top: 5px;
+    flex-direction: row;
+}
+
+.left-edge .tile-upgrade-indicator {
+    right: 5px;
+    flex-direction: column;
+}
+
+.right-edge .tile-upgrade-indicator {
+    left: 5px;
+    flex-direction: column;
+}
+
 /* ====== BOARD CENTER ====== */
 .center {
     grid-row: 2/8;
@@ -677,6 +702,10 @@ body {
     flex-wrap: wrap;
     gap: 4px;
     min-height: 18px;
+    max-height: 120px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-active) transparent;
 }
 
 .pc-props-empty {

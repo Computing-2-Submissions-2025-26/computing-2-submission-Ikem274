@@ -35,7 +35,7 @@ const initHomeScreen = () => {
 
     let count = 0;
 
-    [2, 3, 4, 5, 6].forEach(n => {
+    [2, 3, 4].forEach(n => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "count-btn";
@@ -200,8 +200,8 @@ const renderTokensOnBoard = () => {
         if (!tileEl) return;
         const c = document.createElement("div");
         // Gap Year tile (8): visiting players go top-right, jailed stay centred
-        const visiting = Number(tid) === GameLogic.GAP_YEAR_TILE && pls.every(p => !p.inJail);
-        const jailed = Number(tid) === GameLogic.GAP_YEAR_TILE && pls.some(p => p.inJail);
+        const visiting = Number(tid) === GameLogic.GAP_YEAR_TILE && pls.every(p => !p.inGapYear);
+        const jailed = Number(tid) === GameLogic.GAP_YEAR_TILE && pls.some(p => p.inGapYear);
         c.className = "tile-tokens" + (visiting ? " tile-tokens--visiting" : "");
         pls.forEach(p => {
             const t = document.createElement("div");
@@ -250,9 +250,9 @@ const renderUpgradeIndicators = () => {
         const ind = document.createElement("div");
         ind.className = "tile-upgrade-indicator";
         if (level === 3) {
-            ind.textContent = "🏨";
+            ind.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#e74c3c" stroke="#fff" stroke-width="2"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 7h2M9 11h2M9 15h2M13 7h2M13 11h2M13 15h2"></path></svg>`;
         } else {
-            ind.textContent = "🏠".repeat(level);
+            ind.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="#2ecc71" stroke="#fff" stroke-width="2" style="margin:0 1px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`.repeat(level);
         }
         tileEl.appendChild(ind);
     });
@@ -373,22 +373,24 @@ const updateActionButtons = () => {
     const btnBuy = document.getElementById("btn-buy");
     const btnUpgrade = document.getElementById("btn-upgrade");
     const btnEnd = document.getElementById("btn-end-turn");
-    const btnPayJail = document.getElementById("btn-pay-jail");
-    const btnRollJail = document.getElementById("btn-roll-jail");
+    const btnPayGapYear = document.getElementById("btn-pay-gap-year");
+    const btnRollGapYear = document.getElementById("btn-roll-gap-year");
+    const btnSellUpgrade = document.getElementById("btn-sell-upgrade");
 
     // Hide all first
-    [btnRoll, btnBuy, btnUpgrade, btnEnd, btnPayJail, btnRollJail].forEach(b => b.classList.add("hidden"));
+    [btnRoll, btnBuy, btnUpgrade, btnSellUpgrade, btnEnd, btnPayGapYear, btnRollGapYear].forEach(b => b.classList.add("hidden"));
 
     if (gameState.phase === "game_over") return;
 
     // Bankrupt players can't do anything
     if (player.isBankrupt) return;
 
-    if (player.inJail) {
-        btnPayJail.classList.remove("hidden");
-        btnRollJail.classList.remove("hidden");
-        if (player.money < GameLogic.GAP_YEAR_BUYOUT) btnPayJail.disabled = true;
-        else btnPayJail.disabled = false;
+    if (player.inGapYear) {
+        btnPayGapYear.classList.remove("hidden");
+        btnRollGapYear.classList.remove("hidden");
+        btnRollGapYear.disabled = false;
+        if (player.money < GameLogic.GAP_YEAR_BUYOUT) btnPayGapYear.disabled = true;
+        else btnPayGapYear.disabled = false;
         return;
     }
 
@@ -411,6 +413,10 @@ const updateActionButtons = () => {
                 if (ownsSet && tile.upgradeCost && level < 3) {
                     btnUpgrade.classList.remove("hidden");
                     btnUpgrade.textContent = `Buy House — £${tile.upgradeCost}`;
+                }
+                if (level > 0 && tile.sellPrice) {
+                    btnSellUpgrade.classList.remove("hidden");
+                    btnSellUpgrade.textContent = `Sell House — +£${tile.sellPrice}`;
                 }
             }
         }
@@ -559,6 +565,9 @@ const showPropertyCard = (tileId, infoOnly) => {
     } else if (isCurrentPlayerOwner && ownsSet && tile.upgradeCost && level < 3 && player.money >= tile.upgradeCost) {
         html += `<button class="action-btn action-btn--buy" id="modal-upgrade">Upgrade — £${tile.upgradeCost}</button>`;
     }
+    if (isCurrentPlayerOwner && level > 0 && tile.sellPrice) {
+        html += `<button class="action-btn action-btn--buy" id="modal-sell-upgrade">Sell House — +£${tile.sellPrice}</button>`;
+    }
     html += `<button class="action-btn action-btn--end" id="modal-close">Close</button>`;
     html += `</div>`;
 
@@ -581,6 +590,17 @@ const showPropertyCard = (tileId, infoOnly) => {
         upgradeBtn.addEventListener("click", () => {
             gameState = Api.upgradeProperty(gameState, tileId);
             showToast(`Upgraded ${tile.name} to Level ${level + 1}!`, "gain");
+            closeModal();
+            renderPlayerPanel();
+            renderUpgradeIndicators();
+            updateActionButtons();
+        });
+    }
+    const sellUpgradeBtn = document.getElementById("modal-sell-upgrade");
+    if (sellUpgradeBtn) {
+        sellUpgradeBtn.addEventListener("click", () => {
+            gameState = Api.sellPropertyUpgrade(gameState, tileId);
+            showToast(`Sold a house on ${tile.name}!`, "gain");
             closeModal();
             renderPlayerPanel();
             renderUpgradeIndicators();
@@ -718,6 +738,18 @@ const wireButtons = () => {
         updateActionButtons();
     });
 
+    // Sell House
+    document.getElementById("btn-sell-upgrade").addEventListener("click", () => {
+        const player = Api.currentPlayer(gameState);
+        const tile = GameLogic.getTileData(player.position);
+        if (!tile) return;
+        gameState = Api.sellPropertyUpgrade(gameState, player.position);
+        showToast(`Sold a house on ${tile.name}!`, "gain");
+        renderPlayerPanel();
+        renderUpgradeIndicators();
+        updateActionButtons();
+    });
+
     // End Turn
     document.getElementById("btn-end-turn").addEventListener("click", () => {
         gameState = Api.endTurn(gameState);
@@ -728,19 +760,19 @@ const wireButtons = () => {
 
         // Check if next player is in jail
         const next = Api.currentPlayer(gameState);
-        if (next.inJail) {
+        if (next.inGapYear) {
             showToast(`${next.name} is in Gap Year!`, "info");
         }
     });
 
     // Pay Jail Buyout
-    document.getElementById("btn-pay-jail").addEventListener("click", () => {
+    document.getElementById("btn-pay-gap-year").addEventListener("click", () => {
         const player = Api.currentPlayer(gameState);
         if (player.money < GameLogic.GAP_YEAR_BUYOUT) {
             showToast("Not enough money to buy out!", "lose");
             return;
         }
-        const result = Api.handleJailTurn(gameState, "pay");
+        const result = Api.handleGapYearTurn(gameState, "pay");
         gameState = result.state;
         showToast("Paid £50 buyout — you're free!", "lose");
         renderPlayerPanel();
@@ -749,13 +781,13 @@ const wireButtons = () => {
     });
 
     // Roll to Escape Jail
-    document.getElementById("btn-roll-jail").addEventListener("click", async () => {
-        const btnRJ = document.getElementById("btn-roll-jail");
-        const btnPJ = document.getElementById("btn-pay-jail");
+    document.getElementById("btn-roll-gap-year").addEventListener("click", async () => {
+        const btnRJ = document.getElementById("btn-roll-gap-year");
+        const btnPJ = document.getElementById("btn-pay-gap-year");
         btnRJ.disabled = true;
         btnPJ.disabled = true;
 
-        const result = Api.handleJailTurn(gameState, "roll");
+        const result = Api.handleGapYearTurn(gameState, "roll");
         gameState = result.state;
 
         await animateDice(result.diceValue);

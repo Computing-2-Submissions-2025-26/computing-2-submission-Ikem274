@@ -131,12 +131,12 @@ const handleLanding = function (state) {
             const { state: newState, card } = drawEventCard(state);
             return { state: newState, action: { type: "event", card } };
         }
-        case "go_to_jail": {
-            const newState = sendToJail(state, state.currentPlayerIndex);
-            return { state: newState, action: { type: "go_to_jail" } };
+        case "go_to_gap_year": {
+            const newState = sendToGapYear(state, state.currentPlayerIndex);
+            return { state: newState, action: { type: "go_to_gap_year" } };
         }
-        case "jail":
-            return { state, action: { type: "jail_visiting" } };
+        case "gap_year":
+            return { state, action: { type: "gap_year_visiting" } };
         case "free_parking":
             return { state, action: { type: "free_parking" } };
         default:
@@ -230,6 +230,26 @@ const upgradeProperty = function (state, tileId) {
     };
 };
 
+/** Sell house/hotel (downgrade level) */
+const sellPropertyUpgrade = function (state, tileId) {
+    const player = currentPlayer(state);
+    const tile = PROPERTY_DATA[tileId];
+    if (!tile || !tile.sellPrice) return state;
+
+    const ownerIndex = state.players.findIndex(p => p.properties.includes(Number(tileId)));
+    if (ownerIndex !== state.currentPlayerIndex) return state; // Must own it
+
+    const currentLevel = state.propertyLevels[tileId] || 0;
+    if (currentLevel <= 0) return state; // Must have at least 1 house
+
+    const newLevels = { ...state.propertyLevels, [tileId]: currentLevel - 1 };
+
+    return {
+        ...updatePlayer(state, ownerIndex, { money: player.money + tile.sellPrice }),
+        propertyLevels: newLevels
+    };
+};
+
 /** End turn — advance to next non-bankrupt player */
 const endTurn = function (state) {
     let nextIdx = (state.currentPlayerIndex + 1) % state.players.length;
@@ -257,20 +277,20 @@ const endTurn = function (state) {
     };
 };
 
-/** Send a player to jail */
-const sendToJail = (state, playerIdx) =>
+/** Send a player to Gap Year */
+const sendToGapYear = (state, playerIdx) =>
     updatePlayer(state, playerIdx, {
         position: GAP_YEAR_TILE,
-        inJail: true,
-        jailTurns: 0
+        inGapYear: true,
+        gapYearTurns: 0
     });
 
 /**
- * Handle a jail turn.
+ * Handle a Gap Year turn.
  * choice: "roll" | "pay"
  * Returns { state, escaped, diceValue }
  */
-const handleJailTurn = function (state, choice) {
+const handleGapYearTurn = function (state, choice) {
     const idx = state.currentPlayerIndex;
     const player = state.players[idx];
 
@@ -281,8 +301,8 @@ const handleJailTurn = function (state, choice) {
         }
         const newState = updatePlayer(state, idx, {
             money: player.money - GAP_YEAR_BUYOUT,
-            inJail: false,
-            jailTurns: 0
+            inGapYear: false,
+            gapYearTurns: 0
         });
         return { state: { ...newState, phase: "roll", hasRolled: false }, escaped: true, diceValue: null };
     }
@@ -292,8 +312,8 @@ const handleJailTurn = function (state, choice) {
     if (diceValue === GAP_YEAR_ESCAPE_NUMBER) {
         // Escaped! Move forward by the dice value
         let newState = updatePlayer(state, idx, {
-            inJail: false,
-            jailTurns: 0
+            inGapYear: false,
+            gapYearTurns: 0
         });
         newState = { ...newState, lastDiceValue: diceValue, hasRolled: true };
         newState = movePlayer(newState, diceValue);
@@ -301,18 +321,18 @@ const handleJailTurn = function (state, choice) {
     }
 
     // Didn't escape
-    if (player.jailTurns >= 1) {
+    if (player.gapYearTurns >= 1) {
         // Already missed one turn — release them
         const newState = updatePlayer(state, idx, {
-            inJail: false,
-            jailTurns: 0
+            inGapYear: false,
+            gapYearTurns: 0
         });
         return { state: { ...newState, lastDiceValue: diceValue }, escaped: true, diceValue };
     }
 
     // Miss this turn
     const newState = updatePlayer(state, idx, {
-        jailTurns: player.jailTurns + 1
+        gapYearTurns: player.gapYearTurns + 1
     });
     return { state: { ...newState, lastDiceValue: diceValue }, escaped: false, diceValue };
 };
@@ -381,8 +401,8 @@ const checkWinner = function (state) {
 
 export default Object.freeze({
     rollDice, movePlayer, handleLanding,
-    buyProperty, upgradeProperty, endTurn, payRent,
-    sendToJail, handleJailTurn,
+    buyProperty, upgradeProperty, sellPropertyUpgrade, endTurn, payRent,
+    sendToGapYear, handleGapYearTurn,
     drawEventCard, declareBankruptcy, checkWinner,
     findOwner, calculateRent, currentPlayer, ownsFullSet
 });
