@@ -340,25 +340,6 @@ const renderPlayerPanel = () => {
 
         card.append(header, money, divider, propsTitle, propsList);
 
-        // Declare Bankruptcy button for negative money players
-        if (player.money < 0 && !player.isBankrupt) {
-            const bankruptBtn = document.createElement("button");
-            bankruptBtn.className = "action-btn action-btn--bankrupt";
-            bankruptBtn.textContent = "Declare Bankruptcy";
-            bankruptBtn.addEventListener("click", () => {
-                gameState = Api.declareBankruptcy(gameState, idx);
-                gameState = Api.checkWinner(gameState);
-                if (gameState.phase === "game_over") {
-                    showWinScreen(gameState.winner);
-                }
-                renderPlayerPanel();
-                renderTokensOnBoard();
-                renderOwnerIcons();
-                updateActionButtons();
-            });
-            card.appendChild(bankruptBtn);
-        }
-
         pp.appendChild(card);
     });
 };
@@ -373,12 +354,13 @@ const updateActionButtons = () => {
     const btnBuy = document.getElementById("btn-buy");
     const btnUpgrade = document.getElementById("btn-upgrade");
     const btnEnd = document.getElementById("btn-end-turn");
+    const btnDeclareBankruptcy = document.getElementById("btn-declare-bankruptcy");
     const btnPayGapYear = document.getElementById("btn-pay-gap-year");
     const btnRollGapYear = document.getElementById("btn-roll-gap-year");
     const btnSellUpgrade = document.getElementById("btn-sell-upgrade");
 
     // Hide all first
-    [btnRoll, btnBuy, btnUpgrade, btnSellUpgrade, btnEnd, btnPayGapYear, btnRollGapYear].forEach(b => b.classList.add("hidden"));
+    [btnRoll, btnBuy, btnUpgrade, btnSellUpgrade, btnEnd, btnDeclareBankruptcy, btnPayGapYear, btnRollGapYear].forEach(b => b.classList.add("hidden"));
 
     if (gameState.phase === "game_over") return;
 
@@ -420,6 +402,11 @@ const updateActionButtons = () => {
                 }
             }
         }
+    }
+
+    if (player.money < 0 && !player.isBankrupt) {
+        btnDeclareBankruptcy.classList.remove("hidden");
+        btnEnd.classList.add("hidden");
     }
 };
 
@@ -541,6 +528,7 @@ const showPropertyCard = (tileId, infoOnly) => {
 
     let html = `<div class="prop-card-image-container" style="text-align: center; margin-bottom: 1rem; margin-top: 1rem;">`;
     // We use an inline SVG as a robust placeholder so you can easily swap it out for a real info card later.
+
     html += `
     <svg width="300" height="450" viewBox="0 0 300 450" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
         <rect width="300" height="450" fill="${headerColour}" />
@@ -562,11 +550,13 @@ const showPropertyCard = (tileId, infoOnly) => {
     html += `<div class="prop-card-actions">`;
     if (!infoOnly && !owner && GameLogic.isProperty(tileId) && player.money >= tile.price) {
         html += `<button class="action-btn action-btn--buy" id="modal-buy">Buy — £${tile.price}</button>`;
-    } else if (isCurrentPlayerOwner && ownsSet && tile.upgradeCost && level < 3 && player.money >= tile.upgradeCost) {
-        html += `<button class="action-btn action-btn--buy" id="modal-upgrade">Upgrade — £${tile.upgradeCost}</button>`;
-    }
-    if (isCurrentPlayerOwner && level > 0 && tile.sellPrice) {
-        html += `<button class="action-btn action-btn--buy" id="modal-sell-upgrade">Sell House — +£${tile.sellPrice}</button>`;
+    } else {
+        if (isCurrentPlayerOwner && level > 0 && tile.sellPrice) {
+            html += `<button class="action-btn action-btn--buy" id="modal-sell-upgrade">Sell House — +£${tile.sellPrice}</button>`;
+        }
+        if (isCurrentPlayerOwner && ownsSet && tile.upgradeCost && level < 3 && player.money >= tile.upgradeCost) {
+            html += `<button class="action-btn action-btn--buy" id="modal-upgrade">Upgrade — £${tile.upgradeCost}</button>`;
+        }
     }
     html += `<button class="action-btn action-btn--end" id="modal-close">Close</button>`;
     html += `</div>`;
@@ -758,14 +748,31 @@ const wireButtons = () => {
         renderTokensOnBoard();
         updateActionButtons();
 
-        // Check if next player is in jail
+        // Check if next player is in Gap Year
         const next = Api.currentPlayer(gameState);
         if (next.inGapYear) {
             showToast(`${next.name} is in Gap Year!`, "info");
         }
     });
 
-    // Pay Jail Buyout
+    // Declare Bankruptcy Button
+    // Should skip to next player after removing the current player from the game.
+    document.getElementById("btn-declare-bankruptcy").addEventListener("click", () => {
+        const player = Api.currentPlayer(gameState);
+        gameState = Api.declareBankruptcy(gameState, gameState.currentPlayerIndex);
+        showToast(`${player.name} has declared bankruptcy!`, "lose");
+        gameState = Api.endTurn(gameState);
+        gameState = Api.checkWinner(gameState);
+        if (gameState.phase === "game_over") {
+            showWinScreen(gameState.winner);
+        }
+        renderPlayerPanel();
+        renderTokensOnBoard();
+        renderOwnerIcons();
+        updateActionButtons();
+    });
+
+    // Pay Gap Year Buyout
     document.getElementById("btn-pay-gap-year").addEventListener("click", () => {
         const player = Api.currentPlayer(gameState);
         if (player.money < GameLogic.GAP_YEAR_BUYOUT) {
@@ -780,7 +787,7 @@ const wireButtons = () => {
         updateActionButtons();
     });
 
-    // Roll to Escape Jail
+    // Roll to Escape Gap Year
     document.getElementById("btn-roll-gap-year").addEventListener("click", async () => {
         const btnRJ = document.getElementById("btn-roll-gap-year");
         const btnPJ = document.getElementById("btn-pay-gap-year");

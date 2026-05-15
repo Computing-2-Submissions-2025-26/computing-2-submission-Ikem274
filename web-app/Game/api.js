@@ -252,20 +252,26 @@ const sellPropertyUpgrade = function (state, tileId) {
 
 /** End turn — advance to next non-bankrupt player */
 const endTurn = function (state) {
+
+    // Take the next player index, and if you go past the last player, wrap back to 0
     let nextIdx = (state.currentPlayerIndex + 1) % state.players.length;
     let newRound = state.round;
 
     // Skip bankrupt players
     let safety = 0;
+    // While the next player is bankrupt AND we haven't checked all players yet
     while (state.players[nextIdx].isBankrupt && safety < state.players.length) {
+        //Move to next player
         nextIdx = (nextIdx + 1) % state.players.length;
+        //Increment safety
         safety++;
     }
-
+    // If the next index is smaller than current index, it means we wrapped around the board
     if (nextIdx <= state.currentPlayerIndex) {
+        // Increment round
         newRound++;
     }
-
+    // Return the new state
     return {
         ...state,
         currentPlayerIndex: nextIdx,
@@ -387,7 +393,18 @@ const drawEventCard = function (state) {
 
 /** Declare a player bankrupt (manual action) */
 const declareBankruptcy = function (state, playerIndex) {
-    return updatePlayer(state, playerIndex, { isBankrupt: true });
+    const player = state.players[playerIndex];
+    const newPropertyLevels = { ...state.propertyLevels };
+    player.properties.forEach(tileId => {
+        delete newPropertyLevels[tileId];
+    });
+
+    const newState = updatePlayer(state, playerIndex, { 
+        isBankrupt: true, 
+        properties: [] 
+    });
+
+    return { ...newState, propertyLevels: newPropertyLevels };
 };
 
 /** Check if game is over (only 1 non-bankrupt player left) */
