@@ -79,7 +79,7 @@ const PROPERTY_DATA = {
     16: { name: "Sherfield Walkway", type: "property", price: 240, upgradeCost: 150, sellPrice: 100, rent: [18, 36, 90, 250, 700], colourGroup: "red", description: "Walkway with all the food you need." },
     17: { name: "Event Card", type: "event", price: 0, rent: [0], colourGroup: null, description: "Draw an Event Card." },
     18: { name: "Abdus Salam Library", type: "property", price: 260, upgradeCost: 150, sellPrice: 100, rent: [20, 40, 100, 300, 750], colourGroup: "red", description: "The Central Library." },
-    19: { name: "Eastbound Station", type: "station", price: 200, sellPrice: 100, rent: [100, 200], colourGroup: "station", description: "Take the shuttle service to the other campus." },
+    19: { name: "Eastbound Station", type: "station", price: 250, rent: [100, 200], colourGroup: "station", description: "Take the shuttle service to the other campus." },
     20: { name: "Hammersmith Hospital", type: "property", price: 280, upgradeCost: 200, sellPrice: 140, rent: [22, 44, 110, 330, 800], colourGroup: "yellow", description: "Hammersmith campus" },
     21: { name: "Charing Cross Hospital", type: "property", price: 300, upgradeCost: 200, sellPrice: 140, rent: [24, 48, 120, 360, 850], colourGroup: "yellow", description: "Charing Cross campus" },
     22: { name: "You Fail", type: "go_to_gap_year", price: 0, rent: [0], colourGroup: null, description: "Go directly to Gap Year!" },
@@ -88,7 +88,7 @@ const PROPERTY_DATA = {
     25: { name: "Queens Tower", type: "property", price: 340, upgradeCost: 200, sellPrice: 140, rent: [28, 56, 150, 450, 1000], colourGroup: "green", description: "THE Queen's Tower" },
     26: { name: "Event Card", type: "event", price: 0, rent: [0], colourGroup: null, description: "Draw an Event Card." },
     27: { name: "House Rent Due", type: "tax", price: 0, rent: [0], colourGroup: null, taxRate: 0.20, description: "Pay 20% of your total money." },
-    28: { name: "Royal Albert Hall", type: "property", price: 400, upgradeCost: 250, sellPrice: 175, rent: [100, 200, 600, 1400], colourGroup: "dark_blue", description: "The crown jewel of Kensington." }
+    28: { name: "Royal Albert Hall", type: "property", price: 400, upgradeCost: 250, sellPrice: 175, rent: [0, 100, 200, 600, 1400], colourGroup: "dark_blue", description: "The crown jewel of Kensington." }
 };
 
 /** Event cards — edit text/amounts freely */

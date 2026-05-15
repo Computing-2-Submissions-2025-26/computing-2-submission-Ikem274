@@ -327,7 +327,7 @@ const handleGapYearTurn = function (state, choice) {
     }
 
     // Didn't escape
-    if (player.gapYearTurns >= 1) {
+    if (player.gapYearTurns > 0) {
         // Already missed one turn — release them
         const newState = updatePlayer(state, idx, {
             inGapYear: false,
@@ -384,6 +384,9 @@ const drawEventCard = function (state) {
                 position: target,
                 money
             });
+            if (target === GAP_YEAR_TILE) {
+                newState = sendToGapYear(newState, newState.currentPlayerIndex);
+            }
             break;
         }
     }
@@ -391,7 +394,7 @@ const drawEventCard = function (state) {
     return { state: newState, card };
 };
 
-/** Declare a player bankrupt (manual action) */
+/** Declare a player bankrupt */
 const declareBankruptcy = function (state, playerIndex) {
     const player = state.players[playerIndex];
     const newPropertyLevels = { ...state.propertyLevels };
@@ -399,9 +402,9 @@ const declareBankruptcy = function (state, playerIndex) {
         delete newPropertyLevels[tileId];
     });
 
-    const newState = updatePlayer(state, playerIndex, { 
-        isBankrupt: true, 
-        properties: [] 
+    const newState = updatePlayer(state, playerIndex, {
+        isBankrupt: true,
+        properties: []
     });
 
     return { ...newState, propertyLevels: newPropertyLevels };

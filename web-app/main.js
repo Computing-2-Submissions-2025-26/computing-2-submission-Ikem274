@@ -473,7 +473,6 @@ const handleLandingUI = () => {
             showPropertyCard(action.tileId, true);
             break;
         case "property_owned_other":
-            showPropertyCard(action.tileId, true);
             showToast(`Paid £${action.rentAmount} rent to ${action.owner.name}`, "lose");
             break;
         case "event":
