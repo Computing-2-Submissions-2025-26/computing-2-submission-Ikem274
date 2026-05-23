@@ -1,9 +1,9 @@
 import R from "./ramda.js";
-import GameLogic from "./Game/GameLogic.js";
-import Api from "./Game/api.js";
+import Monopoly from "./Game/Monopoly.js";
 
-
-// ── Tile images ─────────────────────────────────────────────
+// ============================================================
+// Tile images mapping
+// ============================================================
 const TILE_IMAGES = {
     1: "Tiles/Student_Finance.svg", 2: "Tiles/Huxley.svg", 3: "Tiles/Bills_Due.svg",
     4: "Tiles/Westbound_Station.svg", 5: "Tiles/Blackett.svg", 6: "Tiles/Event_Card1.svg",
@@ -17,82 +17,120 @@ const TILE_IMAGES = {
     28: "Tiles/Royal_Albert_Hall.svg"
 };
 
-// ── State ───────────────────────────────────────────────────
+// ============================================================
+// State
+// ============================================================
 let gameState = null;
-let selectedIcons = {}; // playerIndex → emoji
+let selectedIcons = {}; // Maps player index to their chosen emoji
+
+// ── UI Helpers ──────────────────────────────────────────────
+
+/**
+ * Convenience function to grab a DOM element by its ID.
+ */
+const getEl = (id) => document.getElementById(id);
+
+/**
+ * Filter function to get only players who haven't gone bankrupt.
+ */
+const getActivePlayers = R.filter(R.pipe(R.prop("isBankrupt"), R.not));
 
 // ============================================================
-//  HOME SCREEN
+// Setup Screen
 // ============================================================
+
+/**
+ * Initialises the main home screen where players select how many are playing,
+ * their names, and their icons.
+ */
 const initHomeScreen = () => {
-    const grid = document.getElementById("player-count-grid");
-    const label = document.getElementById("home-selected-label");
-    const names = document.getElementById("home-names");
-    const startBtn = document.getElementById("home-start-btn");
-    const hint = document.getElementById("home-money-hint");
+    const grid = getEl("player-count-grid");
+    const label = getEl("home-selected-label");
+    const namesContainer = getEl("home-names");
+    const startBtn = getEl("home-start-btn");
+    const hint = getEl("home-money-hint");
 
-    hint.innerHTML = `Each player starts with <strong>£${GameLogic.STARTING_MONEY.toLocaleString()}</strong>`;
+    // Display how much money everyone starts with
+    hint.innerHTML = `Each player starts with <strong>£${Monopoly.Starting_Money.toLocaleString()}</strong>`;
 
-    let count = 0;
+    let playerCount = 0;
 
-    [2, 3, 4].forEach(n => {
+    // Create buttons for 2, 3, or 4 players
+    const createPlayerCountButtons = R.forEach(n => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "count-btn";
-        btn.id = `count-btn-${n}`;
         btn.textContent = n;
+
         btn.addEventListener("click", () => {
+            // Highlight the clicked button
             grid.querySelectorAll(".count-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            count = n;
+
+            // Update UI to show the setup fields for 'n' players
+            playerCount = n;
             label.textContent = `${n} players selected`;
             selectedIcons = {};
-            buildPlayerSetups(n, names);
-            validateHome(names, startBtn);
+            buildPlayerSetups(n, namesContainer);
+            validateHome(namesContainer, startBtn);
         });
+
         grid.appendChild(btn);
     });
 
+    createPlayerCountButtons([2, 3, 4]);
+
+    // Handle clicking the big "Start Game" button
     startBtn.addEventListener("click", () => {
-        if (count < 2) return;
-        const players = [];
-        for (let i = 0; i < count; i++) {
-            const input = document.getElementById(`player-name-${i}`);
+        if (playerCount < 2) return;
+
+        // Build the player objects based on what was typed/selected
+        const createSetupPlayer = i => {
+            const input = getEl(`player-name-${i}`);
             const name = (input && input.value.trim()) || `Player ${i + 1}`;
-            const emoji = selectedIcons[i] || GameLogic.ICON_CHOICES[i].emoji;
-            const colour = GameLogic.TOKEN_COLOURS[i % GameLogic.TOKEN_COLOURS.length];
-            players.push(GameLogic.createPlayer(i + 1, name, emoji, colour));
-        }
+            const emoji = selectedIcons[i] || Monopoly.Icon_choices[i].emoji;
+            const colour = Monopoly.Token_Colours[i % Monopoly.Token_Colours.length];
+            return Monopoly.createPlayer(i + 1, name, emoji, colour);
+        };
+
+        const players = R.times(createSetupPlayer, playerCount);
         launchGame(players);
     });
 };
 
+/**
+ * Builds the name input and icon picker for each player.
+ */
 const buildPlayerSetups = (n, container) => {
     container.innerHTML = "";
-    for (let i = 0; i < n; i++) {
-        const colour = GameLogic.TOKEN_COLOURS[i % GameLogic.TOKEN_COLOURS.length];
-        const setup = document.createElement("div");
-        setup.className = "home-player-setup";
 
+    R.times(i => {
+        const colour = Monopoly.Token_Colours[i % Monopoly.Token_Colours.length];
+
+        const setupDiv = document.createElement("div");
+        setupDiv.className = "home-player-setup";
+
+        // Player Header (e.g. "Player 1")
         const header = document.createElement("div");
         header.className = "home-player-header";
         const dot = document.createElement("div");
         dot.className = "player-colour-dot";
         dot.style.backgroundColor = colour;
-        dot.style.color = colour;
         const lbl = document.createElement("span");
         lbl.className = "home-player-label";
         lbl.textContent = `Player ${i + 1}`;
         header.append(dot, lbl);
 
+        // Name Input
         const input = document.createElement("input");
         input.type = "text";
         input.className = "home-name-input";
         input.placeholder = `Player ${i + 1}`;
         input.maxLength = 20;
         input.id = `player-name-${i}`;
-        input.addEventListener("input", () => validateHome(container, document.getElementById("home-start-btn")));
+        input.addEventListener("input", () => validateHome(container, getEl("home-start-btn")));
 
+        // Icon Picker
         const iconLabel = document.createElement("div");
         iconLabel.className = "icon-picker-label";
         iconLabel.textContent = "Choose your icon";
@@ -101,43 +139,55 @@ const buildPlayerSetups = (n, container) => {
         picker.className = "icon-picker";
         picker.id = `icon-picker-${i}`;
 
-        GameLogic.ICON_CHOICES.forEach(({ emoji }) => {
+        R.forEach(({ emoji }) => {
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "icon-btn";
             btn.textContent = emoji;
             btn.dataset.emoji = emoji;
+
             btn.addEventListener("click", () => {
                 selectedIcons[i] = emoji;
                 refreshIconPickers(n);
-                validateHome(container, document.getElementById("home-start-btn"));
+                validateHome(container, getEl("home-start-btn"));
             });
-            picker.appendChild(btn);
-        });
 
-        setup.append(header, input, iconLabel, picker);
-        container.appendChild(setup);
-    }
+            picker.appendChild(btn);
+        }, Monopoly.Icon_choices);
+
+        setupDiv.append(header, input, iconLabel, picker);
+        container.appendChild(setupDiv);
+    }, n);
+
     refreshIconPickers(n);
 };
 
+/**
+ * Updates the icon pickers so you can't choose an emoji someone else already picked.
+ */
 const refreshIconPickers = (n) => {
-    const taken = Object.values(selectedIcons);
-    for (let i = 0; i < n; i++) {
-        const picker = document.getElementById(`icon-picker-${i}`);
-        if (!picker) continue;
+    const takenEmojis = R.values(selectedIcons);
+
+    R.times(i => {
+        const picker = getEl(`icon-picker-${i}`);
+        if (!picker) return;
+
         picker.querySelectorAll(".icon-btn").forEach(btn => {
-            const em = btn.dataset.emoji;
+            const emoji = btn.dataset.emoji;
             btn.classList.remove("selected", "taken");
-            if (selectedIcons[i] === em) {
+
+            if (selectedIcons[i] === emoji) {
                 btn.classList.add("selected");
-            } else if (taken.includes(em) && selectedIcons[i] !== em) {
+            } else if (R.includes(emoji, takenEmojis) && selectedIcons[i] !== emoji) {
                 btn.classList.add("taken");
             }
         });
-    }
+    }, n);
 };
 
+/**
+ * Enables or disables the Start button depending on if everyone is ready.
+ */
 const validateHome = (container, btn) => {
     const inputs = container.querySelectorAll(".home-name-input");
     const allHaveIcons = Object.keys(selectedIcons).length === inputs.length;
@@ -145,13 +195,21 @@ const validateHome = (container, btn) => {
 };
 
 // ============================================================
-//  GAME LAUNCH
+// Game Launch
 // ============================================================
-const launchGame = (players) => {
-    gameState = GameLogic.createGameState(players);
-    document.getElementById("home-screen").classList.add("hidden");
-    document.getElementById("game-screen").classList.remove("hidden");
 
+/**
+ * Transitions from the setup screen to the actual game board.
+ */
+const launchGame = (players) => {
+    // 1. Create the engine state
+    gameState = Monopoly.createGameState(players);
+
+    // 2. Swap screens
+    getEl("home-screen").classList.add("hidden");
+    getEl("game-screen").classList.remove("hidden");
+
+    // 3. Render the board and UI
     loadTileImages();
     renderPlayerPanel();
     renderTokensOnBoard();
@@ -160,134 +218,166 @@ const launchGame = (players) => {
     updateActionButtons();
     attachTileClickHandlers();
 
-    console.log("Imperium started!", gameState);
+    console.log("Game started!", gameState);
 };
 
 // ============================================================
-//  BOARD
+// Board Rendering
 // ============================================================
+
+/**
+ * Loads the background images onto the game board tiles.
+ */
 const loadTileImages = () => {
-    Object.entries(TILE_IMAGES).forEach(([id, img]) => {
-        const el = document.getElementById(`tile-${id}`);
-        if (el && img) el.style.backgroundImage = `url('./assets/${img}')`;
-    });
+    R.forEach(([id, imgPath]) => {
+        const el = getEl(`tile-${id}`);
+        if (el && imgPath) {
+            el.style.backgroundImage = `url('./assets/${imgPath}')`;
+        }
+    }, R.toPairs(TILE_IMAGES));
 };
 
+/**
+ * Makes every tile clickable so players can inspect property cards.
+ */
 const attachTileClickHandlers = () => {
-    for (let i = 1; i <= GameLogic.TOTAL_TILES; i++) {
-        const el = document.getElementById(`tile-${i}`);
-        if (!el) continue;
-        el.addEventListener("click", () => showPropertyInfo(i));
-    }
+    R.times(i => {
+        const tileId = i + 1;
+        const el = getEl(`tile-${tileId}`);
+        if (el) {
+            el.addEventListener("click", () => showPropertyInfo(tileId));
+        }
+    }, Monopoly.Total_Tiles);
 };
 
 // ============================================================
-//  TOKENS ON BOARD
+// Dynamic Board Elements (Tokens, Icons, Houses)
 // ============================================================
+
+/**
+ * Draws the player emojis on whatever tile they are currently standing on.
+ */
 const renderTokensOnBoard = () => {
+    // Clear old tokens
     document.querySelectorAll(".tile-tokens").forEach(el => el.remove());
     if (!gameState) return;
 
-    const byTile = {};
-    gameState.players.forEach(p => {
-        if (p.isBankrupt) return;
-        if (!byTile[p.position]) byTile[p.position] = [];
-        byTile[p.position].push(p);
-    });
+    // Group active players by which tile position they are on
+    const activePlayers = getActivePlayers(gameState.players);
+    const playersByTile = R.groupBy(R.prop("position"), activePlayers);
 
-    Object.entries(byTile).forEach(([tid, pls]) => {
-        const tileEl = document.getElementById(`tile-${tid}`);
+    // Render each group of players onto their tile
+    R.forEachObjIndexed((playersOnTile, tileId) => {
+        const tileEl = getEl(`tile-${tileId}`);
         if (!tileEl) return;
-        const c = document.createElement("div");
-        // Gap Year tile (8): visiting players go top-right, jailed stay centred
-        const visiting = Number(tid) === GameLogic.GAP_YEAR_TILE && pls.every(p => !p.inGapYear);
-        const jailed = Number(tid) === GameLogic.GAP_YEAR_TILE && pls.some(p => p.inGapYear);
-        c.className = "tile-tokens" + (visiting ? " tile-tokens--visiting" : "");
-        pls.forEach(p => {
-            const t = document.createElement("div");
-            t.className = "tile-token";
-            t.style.backgroundColor = p.colour;
-            t.title = p.name;
-            t.textContent = p.emoji;
-            c.appendChild(t);
-        });
-        tileEl.appendChild(c);
-    });
+
+        const container = document.createElement("div");
+
+        // Special case: make tokens look different if they are just visiting the Gap Year tile
+        const isVisitingGapYear = Number(tileId) === Monopoly.Gap_Year_Tile &&
+            R.all(R.pipe(R.prop("inGapYear"), R.not), playersOnTile);
+
+        container.className = "tile-tokens" + (isVisitingGapYear ? " tile-tokens--visiting" : "");
+
+        // Add each player's emoji token
+        R.forEach(player => {
+            const token = document.createElement("div");
+            token.className = "tile-token";
+            token.style.backgroundColor = player.colour;
+            token.title = player.name;
+            token.textContent = player.emoji;
+            container.appendChild(token);
+        }, playersOnTile);
+
+        tileEl.appendChild(container);
+    }, playersByTile);
 };
 
-// ============================================================
-//  OWNER ICONS ON TILES
-// ============================================================
+/**
+ * Draws a small coloured badge on tiles to show who owns them.
+ */
 const renderOwnerIcons = () => {
     document.querySelectorAll(".tile-owner-icon").forEach(el => el.remove());
     if (!gameState) return;
 
-    gameState.players.forEach(p => {
-        if (p.isBankrupt) return;
-        p.properties.forEach(tid => {
-            const tileEl = document.getElementById(`tile-${tid}`);
+    const activePlayers = getActivePlayers(gameState.players);
+
+    R.forEach(player => {
+        R.forEach(tileId => {
+            const tileEl = getEl(`tile-${tileId}`);
             if (!tileEl) return;
+
             const icon = document.createElement("div");
             icon.className = "tile-owner-icon";
-            icon.style.backgroundColor = p.colour;
-            icon.textContent = p.emoji;
+            icon.style.backgroundColor = player.colour;
+            icon.textContent = player.emoji;
             tileEl.appendChild(icon);
-        });
-    });
+        }, player.properties);
+    }, activePlayers);
 };
 
-// ============================================================
-//  UPGRADE INDICATORS ON TILES (houses / hotel)
-// ============================================================
+/**
+ * Draws green blocks (houses) or red blocks (hotels) on upgraded properties.
+ */
 const renderUpgradeIndicators = () => {
     document.querySelectorAll(".tile-upgrade-indicator").forEach(el => el.remove());
     if (!gameState) return;
 
-    Object.entries(gameState.propertyLevels).forEach(([tid, level]) => {
+    R.forEachObjIndexed((level, tileId) => {
         if (level <= 0) return;
-        const tileEl = document.getElementById(`tile-${tid}`);
+
+        const tileEl = getEl(`tile-${tileId}`);
         if (!tileEl) return;
-        const ind = document.createElement("div");
-        ind.className = "tile-upgrade-indicator";
+
+        const indicator = document.createElement("div");
+        indicator.className = "tile-upgrade-indicator";
+
+        // Level 3 gets a big red hotel icon, others get green house icons
         if (level === 3) {
-            ind.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#e74c3c" stroke="#fff" stroke-width="2"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 7h2M9 11h2M9 15h2M13 7h2M13 11h2M13 15h2"></path></svg>`;
+            indicator.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#e74c3c" stroke="#fff" stroke-width="2"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 7h2M9 11h2M9 15h2M13 7h2M13 11h2M13 15h2"></path></svg>`;
         } else {
-            ind.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="#2ecc71" stroke="#fff" stroke-width="2" style="margin:0 1px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`.repeat(level);
+            indicator.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="#2ecc71" stroke="#fff" stroke-width="2" style="margin:0 1px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`.repeat(level);
         }
-        tileEl.appendChild(ind);
-    });
+        tileEl.appendChild(indicator);
+    }, gameState.propertyLevels);
 };
 
 // ============================================================
-//  PLAYER PANEL
+// Side Panel (Player Stats)
 // ============================================================
+
+/**
+ * Updates the side panel that lists all players, their money, and their properties.
+ */
 const renderPlayerPanel = () => {
     if (!gameState) return;
-    const pp = document.getElementById("panel-players");
-    const pr = document.getElementById("panel-round");
-    pr.textContent = `Round ${gameState.round}`;
-    pp.innerHTML = "";
 
-    gameState.players.forEach((player, idx) => {
-        const isActive = idx === gameState.currentPlayerIndex;
+    const panelPlayers = getEl("panel-players");
+    const panelRound = getEl("panel-round");
+
+    panelRound.textContent = `Round ${gameState.round}`;
+    panelPlayers.innerHTML = "";
+
+    const forEachIndexed = R.addIndex(R.forEach);
+
+    forEachIndexed((player, index) => {
+        const isTheirTurn = index === gameState.currentPlayerIndex;
+
         const card = document.createElement("div");
-        card.className = `player-card${isActive ? " active" : ""}${player.isBankrupt ? " bankrupt" : ""}`;
+        card.className = `player-card${isTheirTurn ? " active" : ""}${player.isBankrupt ? " bankrupt" : ""}`;
         card.id = `player-card-${player.id}`;
         card.style.setProperty("--player-colour", player.colour);
 
+        // Header: Emoji, Name, and "Your Turn" badge
         const header = document.createElement("div");
         header.className = "pc-header";
-        const avatar = document.createElement("div");
-        avatar.className = "pc-avatar";
-        avatar.textContent = player.emoji;
-        const name = document.createElement("div");
-        name.className = "pc-name";
-        name.textContent = player.name;
-        const badge = document.createElement("div");
-        badge.className = "pc-turn-badge";
-        badge.textContent = "Your Turn";
-        header.append(avatar, name, badge);
+        header.innerHTML = `
+            <div class="pc-avatar">${player.emoji}</div>
+            <div class="pc-name">${player.name}</div>
+            <div class="pc-turn-badge">Your Turn</div>
+        `;
 
+        // Money Display
         const money = document.createElement("div");
         money.className = "pc-money";
         if (player.money < 0) {
@@ -300,6 +390,7 @@ const renderPlayerPanel = () => {
         const divider = document.createElement("div");
         divider.className = "pc-divider";
 
+        // Properties List
         const propsTitle = document.createElement("div");
         propsTitle.className = "pc-props-title";
         propsTitle.textContent = "Properties";
@@ -308,30 +399,27 @@ const renderPlayerPanel = () => {
         propsList.className = "pc-props-list";
 
         if (player.properties.length === 0) {
-            const empty = document.createElement("span");
-            empty.className = "pc-props-empty";
-            empty.textContent = "None yet";
-            propsList.appendChild(empty);
+            propsList.innerHTML = `<span class="pc-props-empty">None yet</span>`;
         } else {
-            player.properties.forEach(tid => {
-                const data = GameLogic.getTileData(tid);
+            // Render a chip for each property they own
+            player.properties.forEach(tileId => {
+                const data = Monopoly.getTileData(tileId);
                 const chip = document.createElement("div");
                 chip.className = "prop-chip";
-                chip.addEventListener("click", () => showPropertyInfo(tid));
-                const d = document.createElement("div");
-                d.className = "prop-chip-dot";
-                const grp = data && data.colourGroup ? GameLogic.getColourGroup(data.colourGroup) : null;
-                d.style.background = grp ? grp.colour : "var(--accent)";
-                const s = document.createElement("span");
-                s.textContent = data ? data.name : `Tile ${tid}`;
-                chip.append(d, s);
+                chip.addEventListener("click", () => showPropertyInfo(tileId));
 
-                const level = gameState.propertyLevels[tid] || 0;
-                if (level > 0) {
-                    const lvlBadge = document.createElement("div");
-                    lvlBadge.className = "prop-chip-level";
-                    lvlBadge.textContent = "L" + level;
-                    chip.appendChild(lvlBadge);
+                const group = data && data.colourGroup ? Monopoly.getColourGroup(data.colourGroup) : null;
+                const dotColor = group ? group.colour : "var(--accent)";
+
+                chip.innerHTML = `
+                    <div class="prop-chip-dot" style="background: ${dotColor}"></div>
+                    <span>${data ? data.name : `Tile ${tileId}`}</span>
+                `;
+
+                // Add a level badge if they've upgraded it
+                const upgradeLevel = gameState.propertyLevels[tileId] || 0;
+                if (upgradeLevel > 0) {
+                    chip.innerHTML += `<div class="prop-chip-level">L${upgradeLevel}</div>`;
                 }
 
                 propsList.appendChild(chip);
@@ -339,63 +427,79 @@ const renderPlayerPanel = () => {
         }
 
         card.append(header, money, divider, propsTitle, propsList);
-
-        pp.appendChild(card);
-    });
+        panelPlayers.appendChild(card);
+    }, gameState.players);
 };
 
 // ============================================================
-//  ACTION BUTTONS
+// Action Buttons Logic
 // ============================================================
+
+/**
+ * Determines which buttons (Roll, Buy, Upgrade, End Turn, etc.)
+ * should be visible to the player at this exact moment.
+ */
 const updateActionButtons = () => {
     if (!gameState) return;
-    const player = Api.currentPlayer(gameState);
-    const btnRoll = document.getElementById("btn-roll");
-    const btnBuy = document.getElementById("btn-buy");
-    const btnUpgrade = document.getElementById("btn-upgrade");
-    const btnEnd = document.getElementById("btn-end-turn");
-    const btnDeclareBankruptcy = document.getElementById("btn-declare-bankruptcy");
-    const btnPayGapYear = document.getElementById("btn-pay-gap-year");
-    const btnRollGapYear = document.getElementById("btn-roll-gap-year");
-    const btnSellUpgrade = document.getElementById("btn-sell-upgrade");
 
-    // Hide all first
-    [btnRoll, btnBuy, btnUpgrade, btnSellUpgrade, btnEnd, btnDeclareBankruptcy, btnPayGapYear, btnRollGapYear].forEach(b => b.classList.add("hidden"));
+    const player = Monopoly.currentPlayer(gameState);
 
-    if (gameState.phase === "game_over") return;
+    const btnRoll = getEl("btn-roll");
+    const btnBuy = getEl("btn-buy");
+    const btnUpgrade = getEl("btn-upgrade");
+    const btnSellUpgrade = getEl("btn-sell-upgrade");
+    const btnEnd = getEl("btn-end-turn");
+    const btnDeclareBankruptcy = getEl("btn-declare-bankruptcy");
+    const btnPayGapYear = getEl("btn-pay-gap-year");
+    const btnRollGapYear = getEl("btn-roll-gap-year");
 
-    // Bankrupt players can't do anything
-    if (player.isBankrupt) return;
+    // Hide everything initially
+    const allButtons = [btnRoll, btnBuy, btnUpgrade, btnSellUpgrade, btnEnd, btnDeclareBankruptcy, btnPayGapYear, btnRollGapYear];
+    R.forEach(b => b.classList.add("hidden"), allButtons);
 
+    if (gameState.phase === "game_over" || player.isBankrupt) return;
+
+    // --- GAP YEAR LOGIC ---
     if (player.inGapYear) {
         btnPayGapYear.classList.remove("hidden");
         btnRollGapYear.classList.remove("hidden");
+
+        // Only allow paying the buyout fee if they have enough money
         btnRollGapYear.disabled = false;
-        if (player.money < GameLogic.GAP_YEAR_BUYOUT) btnPayGapYear.disabled = true;
-        else btnPayGapYear.disabled = false;
+        btnPayGapYear.disabled = player.money < Monopoly.Gap_Year_Buyout;
         return;
     }
 
+    // --- START OF TURN LOGIC ---
     if (gameState.phase === "roll" && !gameState.hasRolled) {
         btnRoll.classList.remove("hidden");
         btnRoll.disabled = false;
     }
 
+    // --- LANDED ON TILE LOGIC ---
     if (gameState.phase === "landed") {
         btnEnd.classList.remove("hidden");
-        const tile = GameLogic.getTileData(player.position);
-        if (tile && GameLogic.isProperty(player.position)) {
-            const owner = Api.findOwner(gameState, player.position);
+
+        const tile = Monopoly.getTileData(player.position);
+
+        if (tile && Monopoly.isProperty(player.position)) {
+            const owner = Monopoly.findOwner(gameState, player.position);
+
             if (!owner && player.money >= tile.price) {
+                // Property is unowned, and they can afford it
                 btnBuy.classList.remove("hidden");
+
             } else if (owner && owner.id === player.id) {
+                // They own it, check if they can upgrade or sell upgrades
                 const ownerIndex = gameState.players.indexOf(owner);
-                const ownsSet = Api.ownsFullSet(gameState, ownerIndex, tile.colourGroup);
+                const ownsFullSet = Monopoly.ownsFullSet(gameState, ownerIndex, tile.colourGroup);
                 const level = gameState.propertyLevels[player.position] || 0;
-                if (ownsSet && tile.upgradeCost && level < 3) {
+
+                if (ownsFullSet && tile.upgradeCost && level < 3) {
                     btnUpgrade.classList.remove("hidden");
                     btnUpgrade.textContent = `Buy House — £${tile.upgradeCost}`;
                 }
+
                 if (level > 0 && tile.sellPrice) {
                     btnSellUpgrade.classList.remove("hidden");
                     btnSellUpgrade.textContent = `Sell House — +£${tile.sellPrice}`;
@@ -404,18 +508,24 @@ const updateActionButtons = () => {
         }
     }
 
+    // --- BANKRUPTCY LOGIC ---
     if (player.money < 0 && !player.isBankrupt) {
         btnDeclareBankruptcy.classList.remove("hidden");
+        // Force them to resolve their debt or declare bankruptcy
         btnEnd.classList.add("hidden");
     }
 };
 
 // ============================================================
-//  DICE ROLLING
+// Animations
 // ============================================================
-const animateDice = (value) => {
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+/** Rolls the dice rapidly before landing on the final value. */
+const animateDice = (finalValue) => {
     return new Promise(resolve => {
-        const die = document.getElementById("die-face");
+        const die = getEl("die-face");
         die.textContent = "?";
         die.classList.add("rolling");
 
@@ -425,7 +535,7 @@ const animateDice = (value) => {
             flicks++;
             if (flicks >= 10) {
                 clearInterval(interval);
-                die.textContent = value;
+                die.textContent = finalValue;
                 die.classList.remove("rolling");
                 resolve();
             }
@@ -433,38 +543,42 @@ const animateDice = (value) => {
     });
 };
 
-// ============================================================
-//  PLAYER MOVEMENT ANIMATION
-// ============================================================
+/** Makes the player token hop tile by tile to its destination. */
 const animateMovement = async (steps) => {
-    const player = Api.currentPlayer(gameState);
-    let pos = player.position;
+    const player = Monopoly.currentPlayer(gameState);
+    let tempPos = player.position;
 
     for (let i = 0; i < steps; i++) {
-        pos = pos + 1;
-        if (pos > GameLogic.TOTAL_TILES) pos = 1;
+        tempPos = tempPos + 1;
+        if (tempPos > Monopoly.Total_Tiles) tempPos = 1;
 
-        // Temporarily update position for visual
-        gameState = {
-            ...gameState,
-            players: gameState.players.map((p, idx) =>
-                idx === gameState.currentPlayerIndex ? { ...p, position: pos } : p
-            )
-        };
+        // Temporarily adjust position in state purely for the visual re-render
+        const updatePosition = R.over(R.lensProp("position"), R.always(tempPos));
+        gameState = R.over(
+            R.lensProp("players"),
+            R.adjust(gameState.currentPlayerIndex, updatePosition),
+            gameState
+        );
+
         renderTokensOnBoard();
         await sleep(200);
     }
 };
 
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+// ============================================================
+// Central Landing Hub
+// ============================================================
 
-// ============================================================
-//  LANDING HANDLER
-// ============================================================
+/**
+ * Called right after a player lands on a new tile.
+ * It passes the game state into the Engine (Monopoly.js), gets the new state,
+ * and figures out what message/UI to show the user.
+ */
 const handleLandingUI = () => {
-    const { state, action } = Api.handleLanding(gameState);
+    const { state, action } = Monopoly.handleLanding(gameState);
     gameState = state;
 
+    // React to whatever the engine said happened
     switch (action.type) {
         case "property_unowned":
             showPropertyCard(action.tileId, false);
@@ -484,23 +598,24 @@ const handleLandingUI = () => {
         case "go":
             showToast("Landed on Student Finance! Collected £200", "gain");
             break;
-        case "go_to_jail":
+        case "go_to_gap_year":
             showToast("You Fail! Go to Gap Year!", "lose");
             break;
-        case "jail_visiting":
+        case "gap_year_visiting":
             showToast("Just visiting Gap Year", "info");
             break;
         case "free_parking":
             showToast("Free Parking — relax!", "info");
             break;
-        default:
-            break;
     }
 
-    gameState = Api.checkWinner(gameState);
+    // After resolving the tile, check if anyone won
+    gameState = Monopoly.checkWinner(gameState);
     if (gameState.phase === "game_over") {
         showWinScreen(gameState.winner);
     }
+
+    // Refresh the UI to reflect new money/property balances
     renderPlayerPanel();
     renderTokensOnBoard();
     renderOwnerIcons();
@@ -509,51 +624,67 @@ const handleLandingUI = () => {
 };
 
 // ============================================================
-//  PROPERTY CARD MODAL
+// Modals
 // ============================================================
+
+const openModal = (html) => {
+    const overlay = getEl("modal-overlay");
+    const content = getEl("modal-content");
+    content.innerHTML = html;
+    overlay.classList.remove("hidden");
+};
+
+const closeModal = () => {
+    getEl("modal-overlay").classList.add("hidden");
+};
+
+/**
+ * Pops up a detailed card for a specific property.
+ * Includes Buy/Upgrade/Sell buttons if the player is allowed to interact with it.
+ */
 const showPropertyCard = (tileId, infoOnly) => {
-    const tile = GameLogic.getTileData(tileId);
+    const tile = Monopoly.getTileData(tileId);
     if (!tile) return;
 
-    const grp = tile.colourGroup ? GameLogic.getColourGroup(tile.colourGroup) : null;
-    const headerColour = grp ? grp.colour : "#555";
-    const owner = Api.findOwner(gameState, tileId);
-    const player = Api.currentPlayer(gameState);
+    const group = tile.colourGroup ? Monopoly.getColourGroup(tile.colourGroup) : null;
+    const headerColour = group ? group.colour : "#555";
+
+    const owner = Monopoly.findOwner(gameState, tileId);
+    const player = Monopoly.currentPlayer(gameState);
 
     const ownerIndex = owner ? gameState.players.indexOf(owner) : -1;
-    const isCurrentPlayerOwner = ownerIndex === gameState.currentPlayerIndex;
+    const isOwnerCurrentPlayer = ownerIndex === gameState.currentPlayerIndex;
     const level = gameState.propertyLevels[tileId] || 0;
-    const ownsSet = ownerIndex !== -1 ? Api.ownsFullSet(gameState, ownerIndex, tile.colourGroup) : false;
+    const ownsSet = ownerIndex !== -1 ? Monopoly.ownsFullSet(gameState, ownerIndex, tile.colourGroup) : false;
 
-    let html = `<div class="prop-card-image-container" style="text-align: center; margin-bottom: 1rem; margin-top: 1rem;">`;
-    // We use an inline SVG as a robust placeholder so you can easily swap it out for a real info card later.
-
-    html += `
-    <svg width="300" height="450" viewBox="0 0 300 450" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
-        <rect width="300" height="450" fill="${headerColour}" />
-        <rect x="12" y="12" width="276" height="426" fill="#ffffff" rx="6" />
-        <rect x="12" y="12" width="276" height="100" fill="${headerColour}" rx="6" />
-        <text x="150" y="65" font-family="Inter, sans-serif" font-size="22" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${tile.name}</text>
-        <text x="150" y="190" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#2c3e50" text-anchor="middle">SVG Placeholder</text>
-        <circle cx="150" cy="250" r="30" fill="${headerColour}" opacity="0.2" />
-        <text x="150" y="320" font-family="Inter, sans-serif" font-size="12" fill="#7f8c8d" text-anchor="middle">Click to swap later with:</text>
-        <text x="150" y="340" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#e74c3c" text-anchor="middle">assets/Cards/${tileId}.svg</text>
-    </svg>`;
-    html += `</div>`;
+    // Build the beautiful SVG card view
+    let html = `
+    <div class="prop-card-image-container" style="text-align: center; margin-bottom: 1rem; margin-top: 1rem;">
+        <svg width="300" height="450" viewBox="0 0 300 450" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
+            <rect width="300" height="450" fill="${headerColour}" />
+            <rect x="12" y="12" width="276" height="426" fill="#ffffff" rx="6" />
+            <rect x="12" y="12" width="276" height="100" fill="${headerColour}" rx="6" />
+            <text x="150" y="65" font-family="Inter, sans-serif" font-size="22" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${tile.name}</text>
+            <text x="150" y="190" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#2c3e50" text-anchor="middle">SVG Placeholder</text>
+            <circle cx="150" cy="250" r="30" fill="${headerColour}" opacity="0.2" />
+            <text x="150" y="320" font-family="Inter, sans-serif" font-size="12" fill="#7f8c8d" text-anchor="middle">Click to swap later with:</text>
+            <text x="150" y="340" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#e74c3c" text-anchor="middle">assets/Cards/${tileId}.svg</text>
+        </svg>
+    </div>`;
 
     if (owner) {
         html += `<div class="prop-card-owner" style="text-align: center; margin-bottom: 1rem; font-size: 1.1rem;">Owned by <strong>${owner.name}</strong></div>`;
     }
 
-    // Action buttons
+    // Decide which buttons to show on the card
     html += `<div class="prop-card-actions">`;
-    if (!infoOnly && !owner && GameLogic.isProperty(tileId) && player.money >= tile.price) {
+    if (!infoOnly && !owner && Monopoly.isProperty(tileId) && player.money >= tile.price) {
         html += `<button class="action-btn action-btn--buy" id="modal-buy">Buy — £${tile.price}</button>`;
-    } else {
-        if (isCurrentPlayerOwner && level > 0 && tile.sellPrice) {
+    } else if (isOwnerCurrentPlayer) {
+        if (level > 0 && tile.sellPrice) {
             html += `<button class="action-btn action-btn--buy" id="modal-sell-upgrade">Sell House — +£${tile.sellPrice}</button>`;
         }
-        if (isCurrentPlayerOwner && ownsSet && tile.upgradeCost && level < 3 && player.money >= tile.upgradeCost) {
+        if (ownsSet && tile.upgradeCost && level < 3 && player.money >= tile.upgradeCost) {
             html += `<button class="action-btn action-btn--buy" id="modal-upgrade">Upgrade — £${tile.upgradeCost}</button>`;
         }
     }
@@ -562,11 +693,12 @@ const showPropertyCard = (tileId, infoOnly) => {
 
     openModal(html);
 
-    document.getElementById("modal-close").addEventListener("click", closeModal);
-    const buyBtn = document.getElementById("modal-buy");
-    if (buyBtn) {
-        buyBtn.addEventListener("click", () => {
-            gameState = Api.buyProperty(gameState);
+    // Wire up the dynamic buttons
+    getEl("modal-close").addEventListener("click", closeModal);
+
+    if (getEl("modal-buy")) {
+        getEl("modal-buy").addEventListener("click", () => {
+            gameState = Monopoly.buyProperty(gameState);
             showToast(`Bought ${tile.name} for £${tile.price}!`, "gain");
             closeModal();
             renderPlayerPanel();
@@ -574,10 +706,10 @@ const showPropertyCard = (tileId, infoOnly) => {
             updateActionButtons();
         });
     }
-    const upgradeBtn = document.getElementById("modal-upgrade");
-    if (upgradeBtn) {
-        upgradeBtn.addEventListener("click", () => {
-            gameState = Api.upgradeProperty(gameState, tileId);
+
+    if (getEl("modal-upgrade")) {
+        getEl("modal-upgrade").addEventListener("click", () => {
+            gameState = Monopoly.upgradeProperty(gameState, tileId);
             showToast(`Upgraded ${tile.name} to Level ${level + 1}!`, "gain");
             closeModal();
             renderPlayerPanel();
@@ -585,10 +717,10 @@ const showPropertyCard = (tileId, infoOnly) => {
             updateActionButtons();
         });
     }
-    const sellUpgradeBtn = document.getElementById("modal-sell-upgrade");
-    if (sellUpgradeBtn) {
-        sellUpgradeBtn.addEventListener("click", () => {
-            gameState = Api.sellPropertyUpgrade(gameState, tileId);
+
+    if (getEl("modal-sell-upgrade")) {
+        getEl("modal-sell-upgrade").addEventListener("click", () => {
+            gameState = Monopoly.sellPropertyUpgrade(gameState, tileId);
             showToast(`Sold a house on ${tile.name}!`, "gain");
             closeModal();
             renderPlayerPanel();
@@ -598,38 +730,48 @@ const showPropertyCard = (tileId, infoOnly) => {
     }
 };
 
-/** Show property info when clicking a tile (info only, no buy) */
+/** Quick wrapper to show property info when clicked on the board. */
 const showPropertyInfo = (tileId) => {
-    const tile = GameLogic.getTileData(tileId);
-    if (!tile || tile.type === "event" || tile.type === "go" || tile.type === "jail" || tile.type === "go_to_jail" || tile.type === "free_parking") return;
-    if (tile.type === "tax") return;
+    const tile = Monopoly.getTileData(tileId);
+    // Ignore non-properties
+    if (!tile || ["event", "go", "tax", "go_to_gap_year", "free_parking"].includes(tile.type)) return;
+
     showPropertyCard(tileId, true);
 };
 
-// ============================================================
-//  EVENT CARD MODAL
-// ============================================================
+/** Shows a fun modal when an Event Card is drawn. */
 const showEventCard = (card) => {
-    const eff = card.effect;
-    const isGain = eff.type === "gain" || eff.type === "move";
-    const tileName = eff.tileId ? (GameLogic.getTileData(eff.tileId)?.name || `Tile ${eff.tileId}`) : "";
-    const effectText = eff.type === "gain" ? `+£${eff.amount}`
-        : eff.type === "lose" ? `-£${eff.amount}`
-            : `Move to ${tileName}`;
+    const effect = card.effect;
+    const isGain = effect.type === "gain" || effect.type === "move";
 
-    let html = `<div class="event-card-modal">`;
-    html += `<div class="event-card-top"><div class="event-card-subtitle">Event Card</div><h3>${card.title}</h3></div>`;
-    html += `<div class="event-card-body">`;
-    html += `<p>${card.description}</p>`;
-    html += `<div class="event-card-effect ${isGain ? "gain" : "lose"}">${effectText}</div>`;
-    html += `<button class="action-btn action-btn--end" id="modal-close" style="width:100%">OK</button>`;
-    html += `</div></div>`;
+    let effectText = "";
+    if (effect.type === "gain") effectText = `+£${effect.amount}`;
+    else if (effect.type === "lose") effectText = `-£${effect.amount}`;
+    else {
+        const tileName = Monopoly.getTileData(effect.tileId)?.name || `Tile ${effect.tileId}`;
+        effectText = `Move to ${tileName}`;
+    }
+
+    const html = `
+        <div class="event-card-modal">
+            <div class="event-card-top">
+                <div class="event-card-subtitle">Event Card</div>
+                <h3>${card.title}</h3>
+            </div>
+            <div class="event-card-body">
+                <p>${card.description}</p>
+                <div class="event-card-effect ${isGain ? "gain" : "lose"}">${effectText}</div>
+                <button class="action-btn action-btn--end" id="modal-close" style="width:100%">OK</button>
+            </div>
+        </div>
+    `;
 
     openModal(html);
-    document.getElementById("modal-close").addEventListener("click", () => {
+
+    getEl("modal-close").addEventListener("click", () => {
         closeModal();
-        // If the event card moved the player, trigger the tile landing effect
-        if (eff.type === "move") {
+        if (effect.type === "move") {
+            // Re-render and trigger a landing effect since they were moved
             renderTokensOnBoard();
             renderPlayerPanel();
             handleLandingUI();
@@ -642,83 +784,78 @@ const showEventCard = (card) => {
 };
 
 // ============================================================
-//  MODAL HELPERS
+// Toasts
 // ============================================================
-const openModal = (html) => {
-    const overlay = document.getElementById("modal-overlay");
-    const content = document.getElementById("modal-content");
-    content.innerHTML = html;
-    overlay.classList.remove("hidden");
-};
 
-const closeModal = () => {
-    document.getElementById("modal-overlay").classList.add("hidden");
-};
-
-// ============================================================
-//  TOAST NOTIFICATIONS
-// ============================================================
+/** Shows a quick fading notification at the bottom. */
 const showToast = (message, type = "info") => {
-    const container = document.getElementById("toast-container");
+    const container = getEl("toast-container");
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
+
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 3200);
 };
 
 // ============================================================
-//  BUTTON EVENT WIRING
+// Wiring Action Buttons to Logic
 // ============================================================
+
 const wireButtons = () => {
-    // Roll Dice
-    document.getElementById("btn-roll").addEventListener("click", async () => {
-        const btnRoll = document.getElementById("btn-roll");
-        btnRoll.disabled = true;
 
-        gameState = Api.rollDice(gameState);
-        const value = gameState.lastDiceValue;
-        await animateDice(value);
+    // 🎲 ROLL DICE
+    getEl("btn-roll").addEventListener("click", async () => {
+        getEl("btn-roll").disabled = true;
 
-        // Move player step by step
-        const playerBefore = Api.currentPlayer(gameState);
-        await animateMovement(value);
+        // 1. Roll in state
+        gameState = Monopoly.rollDice(gameState);
+        const rolledValue = gameState.lastDiceValue;
 
-        // Now do the "real" move in state (handles GO salary)
-        gameState = {
-            ...gameState,
-            players: gameState.players.map((p, i) =>
-                i === gameState.currentPlayerIndex
-                    ? { ...p, position: playerBefore.position }
-                    : p
-            )
-        };
-        gameState = Api.movePlayer(gameState, value);
+        // 2. Play dice animation
+        await animateDice(rolledValue);
+
+        // 3. Play hopping animation
+        const playerBefore = Monopoly.currentPlayer(gameState);
+        await animateMovement(rolledValue);
+
+        // 4. Do the real move in state (calculates GO money)
+        const revertPosition = R.over(R.lensProp("position"), R.always(playerBefore.position));
+        gameState = R.over(
+            R.lensProp("players"),
+            R.adjust(gameState.currentPlayerIndex, revertPosition),
+            gameState
+        );
+        gameState = Monopoly.movePlayer(gameState, rolledValue);
 
         renderTokensOnBoard();
         renderPlayerPanel();
         handleLandingUI();
     });
 
-    // Buy Property
-    document.getElementById("btn-buy").addEventListener("click", () => {
-        const player = Api.currentPlayer(gameState);
-        const tile = GameLogic.getTileData(player.position);
-        gameState = Api.buyProperty(gameState);
+    // 💰 BUY PROPERTY
+    getEl("btn-buy").addEventListener("click", () => {
+        const player = Monopoly.currentPlayer(gameState);
+        const tile = Monopoly.getTileData(player.position);
+
+        gameState = Monopoly.buyProperty(gameState);
         if (tile) showToast(`Bought ${tile.name} for £${tile.price}!`, "gain");
+
         renderPlayerPanel();
         renderOwnerIcons();
         updateActionButtons();
     });
 
-    // Buy House (Upgrade)
-    document.getElementById("btn-upgrade").addEventListener("click", () => {
-        const player = Api.currentPlayer(gameState);
-        const tile = GameLogic.getTileData(player.position);
+    // 🏠 BUY HOUSE
+    getEl("btn-upgrade").addEventListener("click", () => {
+        const player = Monopoly.currentPlayer(gameState);
+        const tile = Monopoly.getTileData(player.position);
         if (!tile) return;
+
         const levelBefore = gameState.propertyLevels[player.position] || 0;
-        gameState = Api.upgradeProperty(gameState, player.position);
+        gameState = Monopoly.upgradeProperty(gameState, player.position);
         const levelAfter = gameState.propertyLevels[player.position] || 0;
+
         if (levelAfter > levelBefore) {
             showToast(`Upgraded ${tile.name} to Level ${levelAfter}!`, "gain");
         }
@@ -727,124 +864,129 @@ const wireButtons = () => {
         updateActionButtons();
     });
 
-    // Sell House
-    document.getElementById("btn-sell-upgrade").addEventListener("click", () => {
-        const player = Api.currentPlayer(gameState);
-        const tile = GameLogic.getTileData(player.position);
+    // 💸 SELL HOUSE
+    getEl("btn-sell-upgrade").addEventListener("click", () => {
+        const player = Monopoly.currentPlayer(gameState);
+        const tile = Monopoly.getTileData(player.position);
         if (!tile) return;
-        gameState = Api.sellPropertyUpgrade(gameState, player.position);
+
+        gameState = Monopoly.sellPropertyUpgrade(gameState, player.position);
         showToast(`Sold a house on ${tile.name}!`, "gain");
+
         renderPlayerPanel();
         renderUpgradeIndicators();
         updateActionButtons();
     });
 
-    // End Turn
-    document.getElementById("btn-end-turn").addEventListener("click", () => {
-        gameState = Api.endTurn(gameState);
-        document.getElementById("die-face").textContent = "?";
+    // ⏭️ END TURN
+    getEl("btn-end-turn").addEventListener("click", () => {
+        gameState = Monopoly.endTurn(gameState);
+        getEl("die-face").textContent = "?";
+
         renderPlayerPanel();
         renderTokensOnBoard();
         updateActionButtons();
 
-        // Check if next player is in Gap Year
-        const next = Api.currentPlayer(gameState);
-        if (next.inGapYear) {
-            showToast(`${next.name} is in Gap Year!`, "info");
+        // Let them know if the next player is stuck in Gap Year
+        const nextPlayer = Monopoly.currentPlayer(gameState);
+        if (nextPlayer.inGapYear) {
+            showToast(`${nextPlayer.name} is in Gap Year!`, "info");
         }
     });
 
-    // Declare Bankruptcy Button
-    // Should skip to next player after removing the current player from the game.
-    document.getElementById("btn-declare-bankruptcy").addEventListener("click", () => {
-        const player = Api.currentPlayer(gameState);
-        gameState = Api.declareBankruptcy(gameState, gameState.currentPlayerIndex);
+    // 🚨 DECLARE BANKRUPTCY
+    getEl("btn-declare-bankruptcy").addEventListener("click", () => {
+        const player = Monopoly.currentPlayer(gameState);
+
+        gameState = Monopoly.declareBankruptcy(gameState, gameState.currentPlayerIndex);
         showToast(`${player.name} has declared bankruptcy!`, "lose");
-        gameState = Api.endTurn(gameState);
-        gameState = Api.checkWinner(gameState);
+
+        // Skip their turn and check if game ended
+        gameState = Monopoly.endTurn(gameState);
+        gameState = Monopoly.checkWinner(gameState);
+
         if (gameState.phase === "game_over") {
             showWinScreen(gameState.winner);
         }
+
         renderPlayerPanel();
         renderTokensOnBoard();
         renderOwnerIcons();
         updateActionButtons();
     });
 
-    // Pay Gap Year Buyout
-    document.getElementById("btn-pay-gap-year").addEventListener("click", () => {
-        const player = Api.currentPlayer(gameState);
-        if (player.money < GameLogic.GAP_YEAR_BUYOUT) {
+    // 💵 PAY GAP YEAR BUYOUT
+    getEl("btn-pay-gap-year").addEventListener("click", () => {
+        const player = Monopoly.currentPlayer(gameState);
+
+        if (player.money < Monopoly.Gap_Year_Buyout) {
             showToast("Not enough money to buy out!", "lose");
             return;
         }
-        const result = Api.handleGapYearTurn(gameState, "pay");
+
+        const result = Monopoly.handleGapYearTurn(gameState, "pay");
         gameState = result.state;
+
         showToast("Paid £50 buyout — you're free!", "lose");
         renderPlayerPanel();
         renderTokensOnBoard();
         updateActionButtons();
     });
 
-    // Roll to Escape Gap Year
-    document.getElementById("btn-roll-gap-year").addEventListener("click", async () => {
-        const btnRJ = document.getElementById("btn-roll-gap-year");
-        const btnPJ = document.getElementById("btn-pay-gap-year");
-        btnRJ.disabled = true;
-        btnPJ.disabled = true;
+    // 🎲 ROLL TO ESCAPE GAP YEAR
+    getEl("btn-roll-gap-year").addEventListener("click", async () => {
+        getEl("btn-roll-gap-year").disabled = true;
+        getEl("btn-pay-gap-year").disabled = true;
 
-        const result = Api.handleGapYearTurn(gameState, "roll");
+        const result = Monopoly.handleGapYearTurn(gameState, "roll");
         gameState = result.state;
 
         await animateDice(result.diceValue);
 
         if (result.escaped) {
             showToast(`Rolled a ${result.diceValue} — you're free!`, "gain");
-            if (result.diceValue === GameLogic.GAP_YEAR_ESCAPE_NUMBER) {
-                // They moved, handle landing
+            if (result.diceValue === Monopoly.Gap_Year_Escape_Number) {
                 renderTokensOnBoard();
                 renderPlayerPanel();
                 handleLandingUI();
                 return;
             }
-            // Released after missing a turn — just end turn
-            gameState = Api.endTurn(gameState);
+            gameState = Monopoly.endTurn(gameState);
         } else {
-            showToast(`Rolled a ${result.diceValue} — need a ${GameLogic.GAP_YEAR_ESCAPE_NUMBER}. Turn missed.`, "lose");
-            gameState = Api.endTurn(gameState);
+            showToast(`Rolled a ${result.diceValue} — need a ${Monopoly.Gap_Year_Escape_Number}. Turn missed.`, "lose");
+            gameState = Monopoly.endTurn(gameState);
         }
 
-        document.getElementById("die-face").textContent = "?";
+        getEl("die-face").textContent = "?";
         renderPlayerPanel();
         renderTokensOnBoard();
         updateActionButtons();
     });
 
-    // Modal overlay click to close
-    document.getElementById("modal-overlay").addEventListener("click", (e) => {
+    // ❌ MODAL BACKGROUND CLICK
+    getEl("modal-overlay").addEventListener("click", (e) => {
         if (e.target.id === "modal-overlay") closeModal();
     });
 };
 
 // ============================================================
-//  WIN SCREEN
+// Game Over
 // ============================================================
+
 const showWinScreen = (winner) => {
-    const screen = document.getElementById("win-screen");
-    const emoji = document.getElementById("win-emoji");
-    const name = document.getElementById("win-name");
-    const money = document.getElementById("win-money");
-    emoji.textContent = winner ? winner.emoji : "🏆";
-    name.textContent = winner ? `${winner.name} Wins!` : "Game Over!";
-    money.textContent = winner ? `Final Balance: £${winner.money.toLocaleString()}` : "";
+    const screen = getEl("win-screen");
+    getEl("win-emoji").textContent = winner ? winner.emoji : "🏆";
+    getEl("win-name").textContent = winner ? `${winner.name} Wins!` : "Game Over!";
+    getEl("win-money").textContent = winner ? `Final Balance: £${winner.money.toLocaleString()}` : "";
     screen.classList.remove("hidden");
 };
 
 // ============================================================
-//  BOOT
+// Boot Sequence
 // ============================================================
+
 window.addEventListener("DOMContentLoaded", () => {
-    console.log("Imperium 8x8 — UI Initialised");
+    console.log("Imperium UI Initialised — using Monopoly.js");
     initHomeScreen();
     wireButtons();
 });
