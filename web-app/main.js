@@ -1,5 +1,5 @@
 import R from "./ramda.js";
-import Monopoly from "./Game/Monopoly.js";
+import Imperium from "./Imperium.js";
 
 // ============================================================
 // Tile images mapping
@@ -51,7 +51,7 @@ const initHomeScreen = () => {
     const hint = getEl("home-money-hint");
 
     // Display how much money everyone starts with
-    hint.innerHTML = `Each player starts with <strong>£${Monopoly.Starting_Money.toLocaleString()}</strong>`;
+    hint.innerHTML = `Each player starts with <strong>£${Imperium.starting_money.toLocaleString()}</strong>`;
 
     let playerCount = 0;
 
@@ -88,9 +88,9 @@ const initHomeScreen = () => {
         const createSetupPlayer = i => {
             const input = getEl(`player-name-${i}`);
             const name = (input && input.value.trim()) || `Player ${i + 1}`;
-            const emoji = selectedIcons[i] || Monopoly.Icon_choices[i].emoji;
-            const colour = Monopoly.Token_Colours[i % Monopoly.Token_Colours.length];
-            return Monopoly.createPlayer(i + 1, name, emoji, colour);
+            const emoji = selectedIcons[i] || Imperium.icon_choices[i].emoji;
+            const colour = Imperium.token_colours[i % Imperium.token_colours.length];
+            return Imperium.create_player(i + 1, name, emoji, colour);
         };
 
         const players = R.times(createSetupPlayer, playerCount);
@@ -105,7 +105,7 @@ const buildPlayerSetups = (n, container) => {
     container.innerHTML = "";
 
     R.times(i => {
-        const colour = Monopoly.Token_Colours[i % Monopoly.Token_Colours.length];
+        const colour = Imperium.token_colours[i % Imperium.token_colours.length];
 
         const setupDiv = document.createElement("div");
         setupDiv.className = "home-player-setup";
@@ -153,7 +153,7 @@ const buildPlayerSetups = (n, container) => {
             });
 
             picker.appendChild(btn);
-        }, Monopoly.Icon_choices);
+        }, Imperium.icon_choices);
 
         setupDiv.append(header, input, iconLabel, picker);
         container.appendChild(setupDiv);
@@ -200,10 +200,11 @@ const validateHome = (container, btn) => {
 
 /**
  * Transitions from the setup screen to the actual game board.
+ * @param {Imperium.Player[]} players
  */
 const launchGame = (players) => {
     // 1. Create the engine state
-    gameState = Monopoly.createGameState(players);
+    gameState = Imperium.create_game_state(players);
 
     // 2. Swap screens
     getEl("home-screen").classList.add("hidden");
@@ -227,6 +228,7 @@ const launchGame = (players) => {
 
 /**
  * Loads the background images onto the game board tiles.
+ * @returns {void}
  */
 const loadTileImages = () => {
     R.forEach(([id, imgPath]) => {
@@ -247,7 +249,7 @@ const attachTileClickHandlers = () => {
         if (el) {
             el.addEventListener("click", () => showPropertyInfo(tileId));
         }
-    }, Monopoly.Total_Tiles);
+    }, Imperium.total_tiles);
 };
 
 // ============================================================
@@ -256,6 +258,8 @@ const attachTileClickHandlers = () => {
 
 /**
  * Draws the player emojis on whatever tile they are currently standing on.
+ * Grouping players by tile to prevent overlap, and styling visitors in the Gap Year differently.
+ * @returns {void}
  */
 const renderTokensOnBoard = () => {
     // Clear old tokens
@@ -274,7 +278,7 @@ const renderTokensOnBoard = () => {
         const container = document.createElement("div");
 
         // Special case: make tokens look different if they are just visiting the Gap Year tile
-        const isVisitingGapYear = Number(tileId) === Monopoly.Gap_Year_Tile &&
+        const isVisitingGapYear = Number(tileId) === Imperium.gap_year_tile &&
             R.all(R.pipe(R.prop("inGapYear"), R.not), playersOnTile);
 
         container.className = "tile-tokens" + (isVisitingGapYear ? " tile-tokens--visiting" : "");
@@ -403,12 +407,12 @@ const renderPlayerPanel = () => {
         } else {
             // Render a chip for each property they own
             player.properties.forEach(tileId => {
-                const data = Monopoly.getTileData(tileId);
+                const data = Imperium.get_tile_data(tileId);
                 const chip = document.createElement("div");
                 chip.className = "prop-chip";
                 chip.addEventListener("click", () => showPropertyInfo(tileId));
 
-                const group = data && data.colourGroup ? Monopoly.getColourGroup(data.colourGroup) : null;
+                const group = data && data.colourGroup ? Imperium.get_colour_group(data.colourGroup) : null;
                 const dotColor = group ? group.colour : "var(--accent)";
 
                 chip.innerHTML = `
@@ -442,7 +446,7 @@ const renderPlayerPanel = () => {
 const updateActionButtons = () => {
     if (!gameState) return;
 
-    const player = Monopoly.currentPlayer(gameState);
+    const player = Imperium.current_player(gameState);
 
     const btnRoll = getEl("btn-roll");
     const btnBuy = getEl("btn-buy");
@@ -466,7 +470,7 @@ const updateActionButtons = () => {
 
         // Only allow paying the buyout fee if they have enough money
         btnRollGapYear.disabled = false;
-        btnPayGapYear.disabled = player.money < Monopoly.Gap_Year_Buyout;
+        btnPayGapYear.disabled = player.money < Imperium.gap_year_buyout;
         return;
     }
 
@@ -480,10 +484,10 @@ const updateActionButtons = () => {
     if (gameState.phase === "landed") {
         btnEnd.classList.remove("hidden");
 
-        const tile = Monopoly.getTileData(player.position);
+        const tile = Imperium.get_tile_data(player.position);
 
-        if (tile && Monopoly.isProperty(player.position)) {
-            const owner = Monopoly.findOwner(gameState, player.position);
+        if (tile && Imperium.is_property(player.position)) {
+            const owner = Imperium.find_owner(gameState, player.position);
 
             if (!owner && player.money >= tile.price) {
                 // Property is unowned, and they can afford it
@@ -492,7 +496,7 @@ const updateActionButtons = () => {
             } else if (owner && owner.id === player.id) {
                 // They own it, check if they can upgrade or sell upgrades
                 const ownerIndex = gameState.players.indexOf(owner);
-                const ownsFullSet = Monopoly.ownsFullSet(gameState, ownerIndex, tile.colourGroup);
+                const ownsFullSet = Imperium.owns_full_set(gameState, ownerIndex, tile.colourGroup);
                 const level = gameState.propertyLevels[player.position] || 0;
 
                 if (ownsFullSet && tile.upgradeCost && level < 3) {
@@ -522,7 +526,11 @@ const updateActionButtons = () => {
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-/** Rolls the dice rapidly before landing on the final value. */
+/**
+ * Rolls the dice rapidly before landing on the final value.
+ * @param {number} finalValue
+ * @returns {Promise<void>}
+ */
 const animateDice = (finalValue) => {
     return new Promise(resolve => {
         const die = getEl("die-face");
@@ -543,14 +551,18 @@ const animateDice = (finalValue) => {
     });
 };
 
-/** Makes the player token hop tile by tile to its destination. */
+/**
+ * Makes the player token hop tile by tile to its destination.
+ * @param {number} steps
+ * @returns {Promise<void>}
+ */
 const animateMovement = async (steps) => {
-    const player = Monopoly.currentPlayer(gameState);
+    const player = Imperium.current_player(gameState);
     let tempPos = player.position;
 
     for (let i = 0; i < steps; i++) {
         tempPos = tempPos + 1;
-        if (tempPos > Monopoly.Total_Tiles) tempPos = 1;
+        if (tempPos > Imperium.total_tiles) tempPos = 1;
 
         // Temporarily adjust position in state purely for the visual re-render
         const updatePosition = R.over(R.lensProp("position"), R.always(tempPos));
@@ -571,11 +583,11 @@ const animateMovement = async (steps) => {
 
 /**
  * Called right after a player lands on a new tile.
- * It passes the game state into the Engine (Monopoly.js), gets the new state,
+ * It passes the game state into the Engine (Imperium.js), gets the new state,
  * and figures out what message/UI to show the user.
  */
 const handleLandingUI = () => {
-    const { state, action } = Monopoly.handleLanding(gameState);
+    const { state, action } = Imperium.handle_landing(gameState);
     gameState = state;
 
     // React to whatever the engine said happened
@@ -610,7 +622,7 @@ const handleLandingUI = () => {
     }
 
     // After resolving the tile, check if anyone won
-    gameState = Monopoly.checkWinner(gameState);
+    gameState = Imperium.check_winner(gameState);
     if (gameState.phase === "game_over") {
         showWinScreen(gameState.winner);
     }
@@ -627,6 +639,10 @@ const handleLandingUI = () => {
 // Modals
 // ============================================================
 
+/**
+ * Opens the modal dialog with the given HTML content.
+ * @param {string} html
+ */
 const openModal = (html) => {
     const overlay = getEl("modal-overlay");
     const content = getEl("modal-content");
@@ -641,21 +657,23 @@ const closeModal = () => {
 /**
  * Pops up a detailed card for a specific property.
  * Includes Buy/Upgrade/Sell buttons if the player is allowed to interact with it.
+ * @param {number} tileId
+ * @param {boolean} infoOnly
  */
 const showPropertyCard = (tileId, infoOnly) => {
-    const tile = Monopoly.getTileData(tileId);
+    const tile = Imperium.get_tile_data(tileId);
     if (!tile) return;
 
-    const group = tile.colourGroup ? Monopoly.getColourGroup(tile.colourGroup) : null;
+    const group = tile.colourGroup ? Imperium.get_colour_group(tile.colourGroup) : null;
     const headerColour = group ? group.colour : "#555";
 
-    const owner = Monopoly.findOwner(gameState, tileId);
-    const player = Monopoly.currentPlayer(gameState);
+    const owner = Imperium.find_owner(gameState, tileId);
+    const player = Imperium.current_player(gameState);
 
     const ownerIndex = owner ? gameState.players.indexOf(owner) : -1;
     const isOwnerCurrentPlayer = ownerIndex === gameState.currentPlayerIndex;
     const level = gameState.propertyLevels[tileId] || 0;
-    const ownsSet = ownerIndex !== -1 ? Monopoly.ownsFullSet(gameState, ownerIndex, tile.colourGroup) : false;
+    const ownsSet = ownerIndex !== -1 ? Imperium.owns_full_set(gameState, ownerIndex, tile.colourGroup) : false;
 
     // Build the beautiful SVG card view
     let html = `
@@ -678,7 +696,7 @@ const showPropertyCard = (tileId, infoOnly) => {
 
     // Decide which buttons to show on the card
     html += `<div class="prop-card-actions">`;
-    if (!infoOnly && !owner && Monopoly.isProperty(tileId) && player.money >= tile.price) {
+    if (!infoOnly && !owner && Imperium.is_property(tileId) && player.money >= tile.price) {
         html += `<button class="action-btn action-btn--buy" id="modal-buy">Buy — £${tile.price}</button>`;
     } else if (isOwnerCurrentPlayer) {
         if (level > 0 && tile.sellPrice) {
@@ -698,7 +716,7 @@ const showPropertyCard = (tileId, infoOnly) => {
 
     if (getEl("modal-buy")) {
         getEl("modal-buy").addEventListener("click", () => {
-            gameState = Monopoly.buyProperty(gameState);
+            gameState = Imperium.buy_property(gameState);
             showToast(`Bought ${tile.name} for £${tile.price}!`, "gain");
             closeModal();
             renderPlayerPanel();
@@ -709,7 +727,7 @@ const showPropertyCard = (tileId, infoOnly) => {
 
     if (getEl("modal-upgrade")) {
         getEl("modal-upgrade").addEventListener("click", () => {
-            gameState = Monopoly.upgradeProperty(gameState, tileId);
+            gameState = Imperium.upgrade_property(gameState, tileId);
             showToast(`Upgraded ${tile.name} to Level ${level + 1}!`, "gain");
             closeModal();
             renderPlayerPanel();
@@ -720,7 +738,7 @@ const showPropertyCard = (tileId, infoOnly) => {
 
     if (getEl("modal-sell-upgrade")) {
         getEl("modal-sell-upgrade").addEventListener("click", () => {
-            gameState = Monopoly.sellPropertyUpgrade(gameState, tileId);
+            gameState = Imperium.sell_property_upgrade(gameState, tileId);
             showToast(`Sold a house on ${tile.name}!`, "gain");
             closeModal();
             renderPlayerPanel();
@@ -732,7 +750,7 @@ const showPropertyCard = (tileId, infoOnly) => {
 
 /** Quick wrapper to show property info when clicked on the board. */
 const showPropertyInfo = (tileId) => {
-    const tile = Monopoly.getTileData(tileId);
+    const tile = Imperium.get_tile_data(tileId);
     // Ignore non-properties
     if (!tile || ["event", "go", "tax", "go_to_gap_year", "free_parking"].includes(tile.type)) return;
 
@@ -748,7 +766,7 @@ const showEventCard = (card) => {
     if (effect.type === "gain") effectText = `+£${effect.amount}`;
     else if (effect.type === "lose") effectText = `-£${effect.amount}`;
     else {
-        const tileName = Monopoly.getTileData(effect.tileId)?.name || `Tile ${effect.tileId}`;
+        const tileName = Imperium.get_tile_data(effect.tileId)?.name || `Tile ${effect.tileId}`;
         effectText = `Move to ${tileName}`;
     }
 
@@ -787,7 +805,11 @@ const showEventCard = (card) => {
 // Toasts
 // ============================================================
 
-/** Shows a quick fading notification at the bottom. */
+/**
+ * Shows a quick fading notification at the bottom.
+ * @param {string} message
+ * @param {string} [type="info"]
+ */
 const showToast = (message, type = "info") => {
     const container = getEl("toast-container");
     const toast = document.createElement("div");
@@ -809,14 +831,14 @@ const wireButtons = () => {
         getEl("btn-roll").disabled = true;
 
         // 1. Roll in state
-        gameState = Monopoly.rollDice(gameState);
+        gameState = Imperium.roll_dice(gameState);
         const rolledValue = gameState.lastDiceValue;
 
         // 2. Play dice animation
         await animateDice(rolledValue);
 
         // 3. Play hopping animation
-        const playerBefore = Monopoly.currentPlayer(gameState);
+        const playerBefore = Imperium.current_player(gameState);
         await animateMovement(rolledValue);
 
         // 4. Do the real move in state (calculates GO money)
@@ -826,7 +848,7 @@ const wireButtons = () => {
             R.adjust(gameState.currentPlayerIndex, revertPosition),
             gameState
         );
-        gameState = Monopoly.movePlayer(gameState, rolledValue);
+        gameState = Imperium.move_player(gameState, rolledValue);
 
         renderTokensOnBoard();
         renderPlayerPanel();
@@ -835,10 +857,10 @@ const wireButtons = () => {
 
     // 💰 BUY PROPERTY
     getEl("btn-buy").addEventListener("click", () => {
-        const player = Monopoly.currentPlayer(gameState);
-        const tile = Monopoly.getTileData(player.position);
+        const player = Imperium.current_player(gameState);
+        const tile = Imperium.get_tile_data(player.position);
 
-        gameState = Monopoly.buyProperty(gameState);
+        gameState = Imperium.buy_property(gameState);
         if (tile) showToast(`Bought ${tile.name} for £${tile.price}!`, "gain");
 
         renderPlayerPanel();
@@ -848,12 +870,12 @@ const wireButtons = () => {
 
     // 🏠 BUY HOUSE
     getEl("btn-upgrade").addEventListener("click", () => {
-        const player = Monopoly.currentPlayer(gameState);
-        const tile = Monopoly.getTileData(player.position);
+        const player = Imperium.current_player(gameState);
+        const tile = Imperium.get_tile_data(player.position);
         if (!tile) return;
 
         const levelBefore = gameState.propertyLevels[player.position] || 0;
-        gameState = Monopoly.upgradeProperty(gameState, player.position);
+        gameState = Imperium.upgrade_property(gameState, player.position);
         const levelAfter = gameState.propertyLevels[player.position] || 0;
 
         if (levelAfter > levelBefore) {
@@ -866,11 +888,11 @@ const wireButtons = () => {
 
     // 💸 SELL HOUSE
     getEl("btn-sell-upgrade").addEventListener("click", () => {
-        const player = Monopoly.currentPlayer(gameState);
-        const tile = Monopoly.getTileData(player.position);
+        const player = Imperium.current_player(gameState);
+        const tile = Imperium.get_tile_data(player.position);
         if (!tile) return;
 
-        gameState = Monopoly.sellPropertyUpgrade(gameState, player.position);
+        gameState = Imperium.sell_property_upgrade(gameState, player.position);
         showToast(`Sold a house on ${tile.name}!`, "gain");
 
         renderPlayerPanel();
@@ -880,7 +902,7 @@ const wireButtons = () => {
 
     // ⏭️ END TURN
     getEl("btn-end-turn").addEventListener("click", () => {
-        gameState = Monopoly.endTurn(gameState);
+        gameState = Imperium.end_turn(gameState);
         getEl("die-face").textContent = "?";
 
         renderPlayerPanel();
@@ -888,7 +910,7 @@ const wireButtons = () => {
         updateActionButtons();
 
         // Let them know if the next player is stuck in Gap Year
-        const nextPlayer = Monopoly.currentPlayer(gameState);
+        const nextPlayer = Imperium.current_player(gameState);
         if (nextPlayer.inGapYear) {
             showToast(`${nextPlayer.name} is in Gap Year!`, "info");
         }
@@ -896,14 +918,14 @@ const wireButtons = () => {
 
     // 🚨 DECLARE BANKRUPTCY
     getEl("btn-declare-bankruptcy").addEventListener("click", () => {
-        const player = Monopoly.currentPlayer(gameState);
+        const player = Imperium.current_player(gameState);
 
-        gameState = Monopoly.declareBankruptcy(gameState, gameState.currentPlayerIndex);
+        gameState = Imperium.declare_bankruptcy(gameState, gameState.currentPlayerIndex);
         showToast(`${player.name} has declared bankruptcy!`, "lose");
 
         // Skip their turn and check if game ended
-        gameState = Monopoly.endTurn(gameState);
-        gameState = Monopoly.checkWinner(gameState);
+        gameState = Imperium.end_turn(gameState);
+        gameState = Imperium.check_winner(gameState);
 
         if (gameState.phase === "game_over") {
             showWinScreen(gameState.winner);
@@ -917,14 +939,14 @@ const wireButtons = () => {
 
     // 💵 PAY GAP YEAR BUYOUT
     getEl("btn-pay-gap-year").addEventListener("click", () => {
-        const player = Monopoly.currentPlayer(gameState);
+        const player = Imperium.current_player(gameState);
 
-        if (player.money < Monopoly.Gap_Year_Buyout) {
+        if (player.money < Imperium.gap_year_buyout) {
             showToast("Not enough money to buy out!", "lose");
             return;
         }
 
-        const result = Monopoly.handleGapYearTurn(gameState, "pay");
+        const result = Imperium.handle_gap_year_turn(gameState, "pay");
         gameState = result.state;
 
         showToast("Paid £50 buyout — you're free!", "lose");
@@ -938,23 +960,23 @@ const wireButtons = () => {
         getEl("btn-roll-gap-year").disabled = true;
         getEl("btn-pay-gap-year").disabled = true;
 
-        const result = Monopoly.handleGapYearTurn(gameState, "roll");
+        const result = Imperium.handle_gap_year_turn(gameState, "roll");
         gameState = result.state;
 
         await animateDice(result.diceValue);
 
         if (result.escaped) {
             showToast(`Rolled a ${result.diceValue} — you're free!`, "gain");
-            if (result.diceValue === Monopoly.Gap_Year_Escape_Number) {
+            if (result.diceValue === Imperium.gap_year_escape_number) {
                 renderTokensOnBoard();
                 renderPlayerPanel();
                 handleLandingUI();
                 return;
             }
-            gameState = Monopoly.endTurn(gameState);
+            gameState = Imperium.end_turn(gameState);
         } else {
-            showToast(`Rolled a ${result.diceValue} — need a ${Monopoly.Gap_Year_Escape_Number}. Turn missed.`, "lose");
-            gameState = Monopoly.endTurn(gameState);
+            showToast(`Rolled a ${result.diceValue} — need a ${Imperium.gap_year_escape_number}. Turn missed.`, "lose");
+            gameState = Imperium.end_turn(gameState);
         }
 
         getEl("die-face").textContent = "?";
@@ -973,6 +995,10 @@ const wireButtons = () => {
 // Game Over
 // ============================================================
 
+/**
+ * Shows the win screen with the winner's details.
+ * @param {Imperium.Player|null} winner
+ */
 const showWinScreen = (winner) => {
     const screen = getEl("win-screen");
     getEl("win-emoji").textContent = winner ? winner.emoji : "🏆";
@@ -986,7 +1012,7 @@ const showWinScreen = (winner) => {
 // ============================================================
 
 window.addEventListener("DOMContentLoaded", () => {
-    console.log("Imperium UI Initialised — using Monopoly.js");
+    console.log("Imperium UI Initialised — using Imperium.js");
     initHomeScreen();
     wireButtons();
 });

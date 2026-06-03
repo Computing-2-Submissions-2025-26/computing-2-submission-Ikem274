@@ -1,31 +1,95 @@
-// ============================================================
-// Monopoly.js — Complete Game Engine (Data + Actions)
-// Combines raw game configuration with state-transforming actions.
-// ============================================================
-import R from "../ramda.js";
+import R from "./ramda.js";
+
+/**
+ * Imperium.js is a module for the Monopoly-inspired game, Imperium.
+ * @namespace Imperium
+ * @author Ikem
+ * @version 2026
+ */
+const Imperium = Object.create(null);
 
 // ── 1. Data & Constants ────────────────────────────────────────
 
-const Starting_Money = 1000;
-const Eastbound_Station_Tile = 19;
-const Total_Tiles = 28;
-const Student_Finance_Tile = 1;
-const Gap_Year_Tile = 8;
-const Go_To_Gap_Year_Tile = 22;
-const Bills_Due_Tile = 3;
-const Rent_Due_Tile = 27;
-const Free_Parking_Tile = 15;
-const Student_Finance_Money = 200;
-const Gap_Year_Buyout = 50;
-const Gap_Year_Escape_Number = 6;
+/**
+ * @memberof Imperium
+ * @typedef {Object} GameState
+ * @property {Imperium.Player[]} players Array of player objects.
+ * @property {number} currentPlayerIndex Index of the current player in the players array.
+ * @property {number} round The current round number.
+ * @property {boolean} isStarted Whether the game has started.
+ * @property {number} startingMoney The initial money for players.
+ * @property {Imperium.EventCard[]} eventDeck The deck of event cards.
+ * @property {number} eventDeckIndex The current index in the event card deck.
+ * @property {string} phase The current phase of the turn (i.e. 'rolling', 'landed', 'game_over').
+ * @property {number|null} lastDiceValue The value of the last rolled dice.
+ * @property {Imperium.EventCard|null} pendingEvent The event card drawn.
+ * @property {boolean} hasRolled Whether the current player has rolled the dice.
+ * @property {boolean} firstMove Whether it is the first move of the game.
+ * @property {Object.<number, number>} propertyLevels Map of tile IDs (Properties) to upgrade levels.
+ * @property {Imperium.Player} [winner] The player who won the game, if over.
+ */
 
-const Token_Colours = [
+/**
+ * @memberof Imperium
+ * @typedef {Object} Player
+ * @property {number} id The player's ID.
+ * @property {string} name The player's name.
+ * @property {number} money The player's current money.
+ * @property {number} position The tile ID the player is currently on.
+ * @property {number[]} properties Array of tile IDs (Properties) owned by the player.
+ * @property {boolean} inGapYear Whether the player is currently in the Gap Year.
+ * @property {number} gapYearTurns How many turns the player has spent in Gap Year.
+ * @property {boolean} isBankrupt Whether the player is bankrupt.
+ * @property {string} colour The player's token colour.
+ * @property {string} emoji The player's token emoji.
+ */
+
+/**
+ * @memberof Imperium
+ * @typedef {Object} TileData
+ * @property {string} name The name of the tile.
+ * @property {string} type The type of the tile.
+ * @property {string|null} colourGroup The colour group the tile belongs to.
+ * @property {string} description The description of the tile.
+ * @property {number} [price] The initial purchase price.
+ * @property {number} [upgradeCost] The cost to upgrade a property.
+ * @property {number} [sellPrice] The amount received for downgrading a property.
+ * @property {number[]} [rent] Array of rent values based on ownership and upgrade levels.
+ * @property {number} [taxRate] The percentage of money taxed by the tax tile.
+ */
+
+/**
+ * @memberof Imperium
+ * @typedef {Object} EventCard
+ * @property {number} id The event card ID.
+ * @property {string} title The title of the event.
+ * @property {string} description The description of the event.
+ * @property {Object} effect The effect of the event card.
+ * @property {string} effect.type The type of effect (i.e. 'gain', 'lose', 'move').
+ * @property {number} [effect.amount] The amount of money to gain or lose.
+ * @property {number} [effect.tileId] The tile ID (property) to move to.
+ */
+
+Imperium.starting_money = 1200;
+Imperium.eastbound_station_tile = 19;
+Imperium.total_tiles = 28;
+Imperium.student_finance_tile = 1;
+Imperium.gap_year_tile = 8;
+Imperium.go_to_gap_year_tile = 22;
+Imperium.bills_due_tile = 3;
+Imperium.rent_due_tile = 27;
+Imperium.free_parking_tile = 15;
+Imperium.student_finance_money = 200;
+Imperium.gap_year_buyout = 50;
+Imperium.gap_year_escape_number = 6;
+
+Imperium.token_colours = [
     "#e74c3c", "#3498db", "#2ecc71",
     "#f39c12", "#9b59b6", "#1abc9c"
 ];
 
-/** Selectable player icons */
-const Icon_choices = [
+/** player icons */
+Imperium.icon_choices = [
     { emoji: "🎩", label: "Top Hat" },
     { emoji: "🚗", label: "Car" },
     { emoji: "🐶", label: "Dog" },
@@ -45,7 +109,7 @@ const Icon_choices = [
 ];
 
 /** Colour sets for properties */
-const ColourSets = {
+Imperium.colour_sets = {
     brown: { colour: "#7C4F36", label: "Brown" },
     light_blue: { colour: "#B9D1E7", label: "Light Blue" },
     pink: { colour: "#AF407E", label: "Pink" },
@@ -63,7 +127,7 @@ const ColourSets = {
  * - rent array: [Without Set, With Set, Level 1: Bachelors, Level 2: Masters, Level 3: PhD]
  * - stations rent: [1 owned, 2 owned]
  */
-const Property_data = {
+Imperium.property_data = {
     1: { name: "Student Finance", type: "Student_Finance", colourGroup: null, description: "Collect £200 when you land on or pass this tile." },
     2: { name: "Huxley", type: "property", price: 150, upgradeCost: 75, sellPrice: 50, rent: [0, 8, 30, 60, 180], colourGroup: "brown", description: "Huxley Building" },
     3: { name: "Bills Due", type: "tax", colourGroup: null, taxRate: 0.10, description: "Pay 10% of your total money." },
@@ -95,29 +159,34 @@ const Property_data = {
 };
 
 /** Event cards */
-const Event_cards = [
+Imperium.event_cards = [
     { id: 1, title: "Scholarship Award", description: "You've been awarded a scholarship! Collect £100.", effect: { type: "gain", amount: 100 } },
     { id: 2, title: "Late Submission", description: "Your coursework was submitted late. Pay a £50 penalty.", effect: { type: "lose", amount: 50 } },
     { id: 3, title: "ACE Equipment Broken", description: "You broke a 3D printer in the lab. Pay £100.", effect: { type: "lose", amount: 100 } },
     { id: 4, title: "Student Union Prize", description: "You won a Student Union competition! Collect £100.", effect: { type: "gain", amount: 100 } },
-    { id: 5, title: "Student Finance Came Early", description: "Go directly to Student Finance. Collect £200.", effect: { type: "move", tileId: Student_Finance_Tile } },
+    { id: 5, title: "Student Finance Came Early", description: "Go directly to Student Finance. Collect £200.", effect: { type: "move", tileId: Imperium.student_finance_tile } },
     { id: 6, title: "Library Fine", description: "You returned a book late. Pay £30.", effect: { type: "lose", amount: 30 } },
     { id: 7, title: "Part-time Job", description: "Your campus job paid a bonus! Collect £80.", effect: { type: "gain", amount: 80 } },
     { id: 8, title: "Society Fundraiser", description: "Your society raised funds! Collect £50.", effect: { type: "gain", amount: 50 } },
     { id: 9, title: "Laptop Repair", description: "Your laptop screen cracked. Pay £100.", effect: { type: "lose", amount: 100 } },
-    { id: 10, title: "Campus Swap", description: "You need to go to the White City campus. Take the shuttle to Eastbound Station.", effect: { type: "move", tileId: Eastbound_Station_Tile } },
+    { id: 10, title: "Campus Swap", description: "You need to go to the White City campus. Take the shuttle to Eastbound Station.", effect: { type: "move", tileId: Imperium.eastbound_station_tile } },
     { id: 11, title: "Halls Maintenance", description: "Your halls need repairs. Pay £60.", effect: { type: "lose", amount: 60 } },
     { id: 12, title: "Research Grant", description: "You received a research grant! Collect £150.", effect: { type: "gain", amount: 150 } },
-    { id: 13, title: "Forgot to Revise", description: "You forgot to revise for your exam and Fail! Take a gap year! ", effect: { type: "move", tileId: Go_To_Gap_Year_Tile } },
+    { id: 13, title: "Forgot to Revise", description: "You forgot to revise for your exam and Fail! Take a gap year! ", effect: { type: "move", tileId: Imperium.go_to_gap_year_tile } },
     { id: 14, title: "Extra Budget", description: "You received an extra budget for your university project. Collect £50", effect: { type: "gain", amount: 50 } },
-    { id: 15, title: "House Rent Increased", description: "Your landlord has increased your rent! Proceed to Rent Due to pay the additional cost.", effect: { type: "move", tileId: Rent_Due_Tile } }
+    { id: 15, title: "House Rent Increased", description: "Your landlord has increased your rent! Proceed to Rent Due to pay the additional cost.", effect: { type: "move", tileId: Imperium.rent_due_tile } }
 ];
-
 
 // ── 2. Pure Initialization & Lookup Helpers ─────────────────────
 
-/** Shuffles an array using the Fisher-Yates algorithm */
-function ShuffleArray(array) {
+/**
+ * Shuffles an array using the Fisher-Yates algorithm.
+ * @memberof Imperium
+ * @function
+ * @param {Array} array The array to shuffle.
+ * @returns {Array} The shuffled array.
+ */
+Imperium.shuffle_array = function (array) {
     for (let i = array.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
         let k = array[i];
@@ -125,45 +194,97 @@ function ShuffleArray(array) {
         array[j] = k;
     }
     return array;
-}
-
-const getTileData = function (tileId) {
-    return Property_data[tileId];
 };
 
-const isProperty = R.pipe(
-    getTileData,
+/**
+ * Returns the tile data for a given tile ID.
+ * @memberof Imperium
+ * @function
+ * @param {number} tileId The ID of the tile.
+ * @returns {Imperium.TileData} The tile data object.
+ */
+Imperium.get_tile_data = function (tileId) {
+    return Imperium.property_data[tileId];
+};
+
+/**
+ * Checks if a given tile ID corresponds to a property.
+ * @memberof Imperium
+ * @function
+ * @param {number} tileId The ID of the tile.
+ * @returns {boolean} True if the tile is a property.
+ */
+Imperium.is_property = R.pipe(
+    Imperium.get_tile_data,
     R.prop("type"),
     R.equals("property")
 );
 
-const isEvent = R.pipe(
-    getTileData,
+/**
+ * Checks if a given tile ID corresponds to an event tile.
+ * @memberof Imperium
+ * @function
+ * @param {number} tileId The ID of the tile.
+ * @returns {boolean} True if the tile is an event tile.
+ */
+Imperium.is_event = R.pipe(
+    Imperium.get_tile_data,
     R.prop("type"),
     R.equals("event")
 );
 
-const isStation = R.pipe(
-    getTileData,
+/**
+ * Checks if a given tile ID corresponds to a station.
+ * @memberof Imperium
+ * @function
+ * @param {number} tileId The ID of the tile.
+ * @returns {boolean} True if the tile is a station.
+ */
+Imperium.is_station = R.pipe(
+    Imperium.get_tile_data,
     R.prop("type"),
     R.equals("station")
 );
 
-const isMuseum = R.pipe(
-    getTileData,
+/**
+ * Checks if a given tile ID corresponds to a museum.
+ * @memberof Imperium
+ * @function
+ * @param {number} tileId The ID of the tile.
+ * @returns {boolean} True if the tile is a museum.
+ */
+Imperium.is_museum = R.pipe(
+    Imperium.get_tile_data,
     R.prop("colourGroup"),
     R.equals("Museums")
 );
 
-const getColourGroup = function (colourGroupName) {
-    return ColourSets[colourGroupName];
+/**
+ * Returns the colour group data for a given colour group name.
+ * @memberof Imperium
+ * @function
+ * @param {string} colourGroupName The name of the colour group.
+ * @returns {Object} The colour group data object.
+ */
+Imperium.get_colour_group = function (colourGroupName) {
+    return Imperium.colour_sets[colourGroupName];
 };
 
-const createPlayer = R.curry((id, name, emoji, colour) => ({
+/**
+ * Creates a new player object.
+ * @memberof Imperium
+ * @function
+ * @param {number} id The player's ID.
+ * @param {string} name The player's name.
+ * @param {string} emoji The player's chosen icon emoji.
+ * @param {string} colour The player's chosen colour.
+ * @returns {Imperium.Player} The newly created player object.
+ */
+Imperium.create_player = R.curry((id, name, emoji, colour) => ({
     id,
     name,
-    money: Starting_Money,
-    position: Student_Finance_Tile,
+    money: Imperium.starting_money,
+    position: Imperium.student_finance_tile,
     properties: [],
     inGapYear: false,
     gapYearTurns: 0,
@@ -177,26 +298,29 @@ const assignId = function (player, index) {
 };
 
 const preparePlayers = R.pipe(
-    ShuffleArray,
+    Imperium.shuffle_array,
     R.addIndex(R.map)(assignId)
 );
 
 const prepareEventDeck = function () {
-    // We clone to avoid modifying the original
-    return ShuffleArray([...Event_cards]);
+    return Imperium.shuffle_array([...Imperium.event_cards]);
 };
 
 /**
  * Creates the initial game state.
  * Players are shuffled for random turn order.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.Player[]} players Array of player objects to start the game.
+ * @returns {Imperium.GameState} The newly created initial game state.
  */
-const createGameState = function (players) {
+Imperium.create_game_state = function (players) {
     return {
         players: preparePlayers(players),
         currentPlayerIndex: 0,
         round: 1,
         isStarted: true,
-        startingMoney: Starting_Money,
+        startingMoney: Imperium.starting_money,
         eventDeck: prepareEventDeck(),
         eventDeckIndex: 0,
         phase: "roll",
@@ -208,18 +332,8 @@ const createGameState = function (players) {
     };
 };
 
-
-
-
-
-
-
-
-
-
 // ── 3. State Transformation Helpers ────────────
 
-/** Updates a single player inside the game state array. */
 const updatePlayer = function (state, index, updates) {
     const applyUpdates = R.mergeLeft(updates);
     const updateInArray = R.adjust(index, applyUpdates);
@@ -227,50 +341,60 @@ const updatePlayer = function (state, index, updates) {
     return updatePlayersList(state);
 };
 
-/** Returns the player object for the person whose turn it is. */
-const currentPlayer = function (state) {
+/**
+ * Returns the player object for the person whose turn it is.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @returns {Imperium.Player} The current player object.
+ */
+Imperium.current_player = function (state) {
     return R.nth(state.currentPlayerIndex, state.players);
 };
 
-/** Counts how many stations a player owns. */
 const countStations = function (state, playerIndex) {
     const getProperties = R.path(["players", playerIndex, "properties"]);
     const countPlayerStations = R.pipe(
         getProperties,
-        R.filter(isStation),
+        R.filter(Imperium.is_station),
         R.length
     );
     return countPlayerStations(state);
 };
 
-/** Counts how many museums a player owns. */
 const countMuseums = function (state, playerIndex) {
     const getProperties = R.path(["players", playerIndex, "properties"]);
     const countPlayerMuseums = R.pipe(
         getProperties,
-        R.filter(isMuseum),
+        R.filter(Imperium.is_museum),
         R.length
     );
     return countPlayerMuseums(state);
 };
 
-/** Checks if a player owns every property in a given colour group. */
-const ownsFullSet = function (state, playerIndex, colourGroup) {
+/**
+ * Checks if a player owns every property in a given colour group.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {number} playerIndex The index of the player to check.
+ * @param {string} colourGroup The name of the colour group.
+ * @returns {boolean} True if the player owns all properties in the group.
+ */
+Imperium.owns_full_set = function (state, playerIndex, colourGroup) {
     if (!colourGroup || colourGroup === "station" || colourGroup === "Museums") {
         return false;
     }
 
-    // Find all tile IDs that belong to this colour group
     const getGroupTileIds = R.pipe(
         R.toPairs,
         R.filter(R.pipe(R.nth(1), R.prop("colourGroup"), R.equals(colourGroup))),
         R.map(R.pipe(R.nth(0), Number))
     );
 
-    const groupTiles = getGroupTileIds(Property_data);
+    const groupTiles = getGroupTileIds(Imperium.property_data);
     const playerProperties = R.path(["players", playerIndex, "properties"], state);
 
-    // Check if the player's properties contain every tile in the group
     const playerOwnsAll = R.pipe(
         R.difference(groupTiles),
         R.isEmpty
@@ -279,11 +403,16 @@ const ownsFullSet = function (state, playerIndex, colourGroup) {
     return playerOwnsAll(playerProperties);
 };
 
-
 // ── 4. Game Actions ───────────────
 
-/** Rolls a die (1–6) and records it. */
-const rollDice = function (state) {
+/**
+ * Rolls a single six-sided die and records the result in the game state.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @returns {Imperium.GameState} A new game state with the dice value recorded and `hasRolled` set to true.
+ */
+Imperium.roll_dice = function (state) {
     const diceValue = Math.floor(Math.random() * 6) + 1;
 
     const recordRoll = R.evolve({
@@ -294,22 +423,27 @@ const rollDice = function (state) {
     return recordRoll(state);
 };
 
-/** Moves the current player forward and collects money if passing GO. */
-const movePlayer = function (state, steps) {
-    const player = currentPlayer(state);
+/**
+ * Moves the current player forward by a specified number of steps, wrapping around the board.
+ * Collects money if passing GO.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {number} steps The number of steps to move.
+ * @returns {Imperium.GameState} The new game state with updated player position.
+ */
+Imperium.move_player = function (state, steps) {
+    const player = Imperium.current_player(state);
 
-    // Wrap around the board using modular arithmetic
     const calculateNewPosition = function (currentPos, moves) {
-        return R.mathMod(currentPos + moves - 1, Total_Tiles) + 1;
+        return R.mathMod(currentPos + moves - 1, Imperium.total_tiles) + 1;
     };
 
     const newPosition = calculateNewPosition(player.position, steps);
-    const passedStudentFinance = (player.position + steps) > Total_Tiles;
+    const passedStudentFinance = (player.position + steps) > Imperium.total_tiles;
 
-
-    // Only award money if the player actually passed Student Finance (not on first move)
     const moneyToAdd = (passedStudentFinance && !state.firstMove)
-        ? Student_Finance_Money
+        ? Imperium.student_finance_money
         : 0;
 
     const movementUpdates = {
@@ -323,10 +457,16 @@ const movePlayer = function (state, steps) {
     return markLanded(stateAfterMove);
 };
 
-/** Handles landing effects. Returns { state, action }. */
-const handleLanding = function (state) {
-    const player = currentPlayer(state);
-    const tile = getTileData(player.position);
+/**
+ * Handles the effects of landing on a tile, such as paying rent, drawing events, or taxing.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @returns {Object} An object containing the new `state` and the `action` triggered.
+ */
+Imperium.handle_landing = function (state) {
+    const player = Imperium.current_player(state);
+    const tile = Imperium.get_tile_data(player.position);
 
     if (!tile) {
         return { state, action: { type: "none" } };
@@ -337,7 +477,7 @@ const handleLanding = function (state) {
     }
 
     if (tile.type === "property" || tile.type === "station") {
-        const owner = findOwner(state, player.position);
+        const owner = Imperium.find_owner(state, player.position);
 
         if (!owner) {
             const markPhase = R.mergeLeft({ phase: "landed" });
@@ -354,9 +494,9 @@ const handleLanding = function (state) {
             };
         }
 
-        const rentAmount = calculateRent(state, player.position, owner);
+        const rentAmount = Imperium.calculate_rent(state, player.position, owner);
         const ownerIndex = R.findIndex(R.pipe(R.prop("id"), R.equals(owner.id)), state.players);
-        const stateAfterRent = payRent(state, state.currentPlayerIndex, ownerIndex, rentAmount);
+        const stateAfterRent = Imperium.pay_rent(state, state.currentPlayerIndex, ownerIndex, rentAmount);
 
         return {
             state: stateAfterRent,
@@ -378,7 +518,7 @@ const handleLanding = function (state) {
     }
 
     if (tile.type === "event") {
-        const { state: stateAfterEvent, card } = drawEventCard(state);
+        const { state: stateAfterEvent, card } = Imperium.draw_event_card(state);
         return {
             state: stateAfterEvent,
             action: { type: "event", card }
@@ -386,7 +526,7 @@ const handleLanding = function (state) {
     }
 
     if (tile.type === "go_to_gap_year") {
-        const stateAfterGapYear = sendToGapYear(state, state.currentPlayerIndex);
+        const stateAfterGapYear = Imperium.send_to_gap_year(state, state.currentPlayerIndex);
         return {
             state: stateAfterGapYear,
             action: { type: "go_to_gap_year" }
@@ -404,8 +544,15 @@ const handleLanding = function (state) {
     return { state, action: { type: "none" } };
 };
 
-/** Finds which player owns a given tile. */
-const findOwner = function (state, tileId) {
+/**
+ * Finds which player owns a given tile ID.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {number} tileId The ID of the tile to check.
+ * @returns {Imperium.Player|null} The owner player, or null if unowned.
+ */
+Imperium.find_owner = function (state, tileId) {
     const searchForOwner = R.pipe(
         R.prop("players"),
         R.find(R.pipe(R.prop("properties"), R.includes(tileId))),
@@ -414,9 +561,17 @@ const findOwner = function (state, tileId) {
     return searchForOwner(state);
 };
 
-/** Calculates rent, taking into account multipliers, groups, and levels. */
-const calculateRent = function (state, tileId, owner) {
-    const tile = Property_data[tileId];
+/**
+ * Calculates the current rent for a given tile, considering ownership and upgrades.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {number} tileId The ID of the property tile.
+ * @param {Imperium.Player} owner The player who owns the property.
+ * @returns {number} The calculated rent amount.
+ */
+Imperium.calculate_rent = function (state, tileId, owner) {
+    const tile = Imperium.property_data[tileId];
     if (!tile) return 0;
 
     const ownerIndex = state.players.indexOf(owner);
@@ -439,15 +594,24 @@ const calculateRent = function (state, tileId, owner) {
         return tile.rent[upgradeLevel + 1] || tile.rent[tile.rent.length - 1];
     }
 
-    if (ownsFullSet(state, ownerIndex, tile.colourGroup)) {
+    if (Imperium.owns_full_set(state, ownerIndex, tile.colourGroup)) {
         return tile.rent[1] || tile.rent[0] * 2;
     }
 
     return tile.rent[0] || 0;
 };
 
-/** Transfers money between two players. */
-const payRent = function (state, fromIndex, toIndex, amount) {
+/**
+ * Transfers money from one player to another to pay rent.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {number} fromIndex The index of the paying player.
+ * @param {number} toIndex The index of the receiving player.
+ * @param {number} amount The amount of rent to transfer.
+ * @returns {Imperium.GameState} The new game state with updated money values.
+ */
+Imperium.pay_rent = function (state, fromIndex, toIndex, amount) {
     const deductFromPayer = R.over(R.lensProp("money"), R.subtract(R.__, amount));
     const addToReceiver = R.over(R.lensProp("money"), R.add(amount));
 
@@ -459,13 +623,18 @@ const payRent = function (state, fromIndex, toIndex, amount) {
     return R.over(R.lensProp("players"), transferRent, state);
 };
 
+/**
+ * Buys the property the current player is standing on, if affordable.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @returns {Imperium.GameState} The game state after the purchase.
+ */
+Imperium.buy_property = function (state) {
+    const player = Imperium.current_player(state);
+    const tile = Imperium.property_data[player.position];
 
-/** Buys the property the current player is standing on. */
-const buyProperty = function (state) {
-    const player = currentPlayer(state);
-    const tile = Property_data[player.position];
-
-    if (!tile || !isProperty(player.position)) return state;
+    if (!tile || !Imperium.is_property(player.position)) return state;
     if (player.money < tile.price) return state;
 
     const purchaseUpdates = {
@@ -476,19 +645,24 @@ const buyProperty = function (state) {
     return updatePlayer(state, state.currentPlayerIndex, purchaseUpdates);
 };
 
-
-
-/** Upgrades a property (adds a house) if the player is eligible. */
-const upgradeProperty = function (state, tileId) {
-    const player = currentPlayer(state);
-    const tile = Property_data[tileId];
+/**
+ * Upgrades a property (adds a house) if the player is eligible and has sufficient funds.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {number} tileId The ID of the property to upgrade.
+ * @returns {Imperium.GameState} The game state after upgrading the property.
+ */
+Imperium.upgrade_property = function (state, tileId) {
+    const player = Imperium.current_player(state);
+    const tile = Imperium.property_data[tileId];
 
     if (!tile || !tile.upgradeCost) return state;
 
     const ownerIndex = R.findIndex(R.pipe(R.prop("properties"), R.includes(Number(tileId))), state.players);
 
     if (ownerIndex !== state.currentPlayerIndex) return state;
-    if (!ownsFullSet(state, ownerIndex, tile.colourGroup)) return state;
+    if (!Imperium.owns_full_set(state, ownerIndex, tile.colourGroup)) return state;
     if (player.money < tile.upgradeCost) return state;
 
     const currentLevel = R.propOr(0, tileId, state.propertyLevels);
@@ -508,12 +682,17 @@ const upgradeProperty = function (state, tileId) {
     return applyUpgrade(state);
 };
 
-
-
-/** Sells a house and gives the player money back. */
-const sellPropertyUpgrade = function (state, tileId) {
-    const player = currentPlayer(state);
-    const tile = Property_data[tileId];
+/**
+ * Sells a property upgrade (house) back to the bank for the sell price.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {number} tileId The ID of the property to downgrade.
+ * @returns {Imperium.GameState} The game state after selling the upgrade.
+ */
+Imperium.sell_property_upgrade = function (state, tileId) {
+    const player = Imperium.current_player(state);
+    const tile = Imperium.property_data[tileId];
 
     if (!tile || !tile.sellPrice) return state;
 
@@ -538,10 +717,14 @@ const sellPropertyUpgrade = function (state, tileId) {
     return applySell(state);
 };
 
-
-
-/** Ends the turn and skips bankrupt players. */
-const endTurn = function (state) {
+/**
+ * Ends the current turn, advancing to the next non-bankrupt player.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @returns {Imperium.GameState} The game state initialized for the next turn.
+ */
+Imperium.end_turn = function (state) {
     const playersCount = R.length(state.players);
     let nextIndex = (state.currentPlayerIndex + 1) % playersCount;
     let newRound = state.round;
@@ -568,30 +751,40 @@ const endTurn = function (state) {
     return advanceToNextTurn(state);
 };
 
-
-
-/** Warps a player to the Gap Year tile. */
-const sendToGapYear = function (state, playerIndex) {
+/**
+ * Instantly moves a player to the Gap Year tile and flags them as in Gap Year.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {number} playerIndex The index of the player to send to Gap Year.
+ * @returns {Imperium.GameState} The game state after sending the player.
+ */
+Imperium.send_to_gap_year = function (state, playerIndex) {
     const gapYearUpdates = {
-        position: Gap_Year_Tile,
+        position: Imperium.gap_year_tile,
         inGapYear: true,
         gapYearTurns: 0
     };
     return updatePlayer(state, playerIndex, gapYearUpdates);
 };
 
-
-
-/** Handles a turn spent in Gap Year (either paying to leave or rolling). */
-const handleGapYearTurn = function (state, choice) {
+/**
+ * Handles a turn spent in Gap Year (either paying to leave or rolling).
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {string} choice The player's choice ("pay" or "roll").
+ * @returns {Object} An object containing the new `state`, `escaped` boolean, and `diceValue`.
+ */
+Imperium.handle_gap_year_turn = function (state, choice) {
     const playerIndex = state.currentPlayerIndex;
     const player = R.nth(playerIndex, state.players);
 
     if (choice === "pay") {
-        if (player.money < Gap_Year_Buyout) return { state, escaped: false, diceValue: null };
+        if (player.money < Imperium.gap_year_buyout) return { state, escaped: false, diceValue: null };
 
         const buyoutUpdates = {
-            money: R.subtract(player.money, Gap_Year_Buyout),
+            money: R.subtract(player.money, Imperium.gap_year_buyout),
             inGapYear: false,
             gapYearTurns: 0
         };
@@ -604,11 +797,11 @@ const handleGapYearTurn = function (state, choice) {
 
     const diceValue = Math.floor(Math.random() * 6) + 1;
 
-    if (diceValue === Gap_Year_Escape_Number) {
+    if (diceValue === Imperium.gap_year_escape_number) {
         const escapeUpdates = { inGapYear: false, gapYearTurns: 0 };
         let stateAfterEscape = updatePlayer(state, playerIndex, escapeUpdates);
         const recordDice = R.mergeLeft({ lastDiceValue: diceValue, hasRolled: true });
-        stateAfterEscape = movePlayer(recordDice(stateAfterEscape), diceValue);
+        stateAfterEscape = Imperium.move_player(recordDice(stateAfterEscape), diceValue);
 
         return { state: stateAfterEscape, escaped: true, diceValue };
     }
@@ -628,13 +821,17 @@ const handleGapYearTurn = function (state, choice) {
     return { state: recordDice(stateAfterMiss), escaped: false, diceValue };
 };
 
-
-
-/** Draws an event card and applies its effect. */
-const drawEventCard = function (state) {
+/**
+ * Draws the next event card from the deck and applies its effects.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @returns {Object} An object containing the new `state` and the drawn `card`.
+ */
+Imperium.draw_event_card = function (state) {
     const deckIsEmpty = R.gte(state.eventDeckIndex, R.length(state.eventDeck));
 
-    const deck = deckIsEmpty ? ShuffleArray([...Event_cards]) : state.eventDeck;
+    const deck = deckIsEmpty ? Imperium.shuffle_array([...Imperium.event_cards]) : state.eventDeck;
     const cardIndex = deckIsEmpty ? 0 : state.eventDeckIndex;
     const card = R.nth(cardIndex, deck);
 
@@ -645,7 +842,7 @@ const drawEventCard = function (state) {
     });
 
     let newState = updateDeckState(state);
-    const player = currentPlayer(newState);
+    const player = Imperium.current_player(newState);
 
     if (card.effect.type === "gain") {
         const addMoney = R.over(R.lensProp("money"), R.add(card.effect.amount));
@@ -656,25 +853,30 @@ const drawEventCard = function (state) {
     } else if (card.effect.type === "move") {
         const targetTile = card.effect.tileId;
         const passedStudentFinance = player.position > targetTile
-            && targetTile !== Gap_Year_Tile
-            && targetTile !== Go_To_Gap_Year_Tile;
+            && targetTile !== Imperium.gap_year_tile
+            && targetTile !== Imperium.go_to_gap_year_tile;
 
-        const moneyToAdd = passedStudentFinance ? Student_Finance_Money : 0;
+        const moneyToAdd = passedStudentFinance ? Imperium.student_finance_money : 0;
         const moveUpdates = { position: targetTile, money: R.add(player.money, moneyToAdd) };
         newState = updatePlayer(newState, newState.currentPlayerIndex, moveUpdates);
 
-        if (targetTile === Go_To_Gap_Year_Tile) {
-            newState = sendToGapYear(newState, newState.currentPlayerIndex);
+        if (targetTile === Imperium.go_to_gap_year_tile) {
+            newState = Imperium.send_to_gap_year(newState, newState.currentPlayerIndex);
         }
     }
 
     return { state: newState, card };
 };
 
-
-
-/** Eliminates a player and hands their properties back to the bank. */
-const declareBankruptcy = function (state, playerIndex) {
+/**
+ * Eliminates a player from the game, returning their properties to the bank.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {number} playerIndex The index of the bankrupt player.
+ * @returns {Imperium.GameState} The game state after the player's bankruptcy.
+ */
+Imperium.declare_bankruptcy = function (state, playerIndex) {
     const playerProperties = R.path(["players", playerIndex, "properties"], state);
 
     const markBankrupt = R.mergeLeft({ isBankrupt: true, properties: [] });
@@ -687,10 +889,14 @@ const declareBankruptcy = function (state, playerIndex) {
 
 const isAlive = R.pipe(R.prop("isBankrupt"), R.not);
 
-
-
-/** Checks if someone has won by being the last player standing. */
-const checkWinner = function (state) {
+/**
+ * Checks if only one player remains unbankrupt, declaring them the winner if so.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @returns {Imperium.GameState} The game state, possibly with phase set to 'game_over' and a 'winner'.
+ */
+Imperium.check_winner = function (state) {
     const alivePlayers = R.filter(isAlive, state.players);
 
     if (R.length(alivePlayers) <= 1) {
@@ -704,25 +910,4 @@ const checkWinner = function (state) {
     return state;
 };
 
-
-
-
-// ── 5. ─────────────────────────────────────────────
-
-export default Object.freeze({
-    // Constants
-    Starting_Money, Total_Tiles, Student_Finance_Tile, Gap_Year_Tile,
-    Go_To_Gap_Year_Tile, Bills_Due_Tile, Rent_Due_Tile,
-    Free_Parking_Tile, Student_Finance_Money, Gap_Year_Buyout,
-    Gap_Year_Escape_Number, Token_Colours, Icon_choices,
-    ColourSets, Property_data, Event_cards,
-
-    // Helpers
-    ShuffleArray, getTileData, isProperty, isEvent, isStation, isMuseum,
-    getColourGroup, createPlayer, createGameState, currentPlayer, ownsFullSet,
-
-    // Actions
-    rollDice, movePlayer, handleLanding, findOwner, calculateRent, payRent,
-    buyProperty, upgradeProperty, sellPropertyUpgrade, endTurn,
-    sendToGapYear, handleGapYearTurn, drawEventCard, declareBankruptcy, checkWinner
-});
+export default Object.freeze(Imperium);
