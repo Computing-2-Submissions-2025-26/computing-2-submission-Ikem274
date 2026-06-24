@@ -17,7 +17,9 @@
 
     <!-- ====== HOME SCREEN ====== -->
     <div id="home-screen" class="home-screen" role="dialog" aria-modal="true" aria-label="Game setup">
-        <div class="home-card">
+
+        <!-- Player Choice Screen -->
+        <div id="home-card" class="home-card">
             <div class="home-logo">
                 <span class="home-logo-badge">IMPERIUM</span>
                 <p class="home-logo-sub">Imperial College Themed Monopoly Board Game</p>
@@ -107,14 +109,6 @@
                 <!-- ── Board Center — logo + event card deck ── -->
                 <div class="center" id="board-center">
                     <h1>IMPERIUM</h1>
-                    <div class="event-deck-area" id="event-deck-area">
-                        <div class="event-deck-stack">
-                            <div class="event-deck-card"></div>
-                            <div class="event-deck-card"></div>
-                            <div class="event-deck-card"></div>
-                        </div>
-                        <span class="event-deck-label">Event Cards</span>
-                    </div>
                 </div>
 
             </div>
@@ -135,16 +129,26 @@
                 <div class="dice-display" id="dice-display">
                     <div class="die" id="die-face">?</div>
                 </div>
-                <button id="btn-roll" class="action-btn action-btn--roll">🎲 Roll Dice</button>
-                <button id="btn-buy" class="action-btn action-btn--buy hidden">Buy Property</button>
-                <button id="btn-sell-upgrade" class="action-btn action-btn--upgrade hidden">Downgrade Degree</button>
-                <button id="btn-upgrade" class="action-btn action-btn--upgrade hidden">Upgrade Degree</button>
-                <button id="btn-end-turn" class="action-btn action-btn--end hidden">End Turn</button>
-                <button id="btn-declare-bankruptcy" class="action-btn action-btn--bankrupt hidden">Declare
-                    Bankruptcy</button>
-                <button id="btn-pay-gap-year" class="action-btn action-btn--gap-year hidden">Pay £50 Buyout</button>
-                <button id="btn-roll-gap-year" class="action-btn action-btn--gap-year hidden">Roll to Escape (need
-                    6)</button>
+                <button id="btn-roll" class="action-btn action-btn--roll">🎲 Roll Dice <span
+                        style="font-size: 0.6rem; vertical-align: top; margin-left: 4px; opacity: 0.7;">[Enter]</span></button>
+                <button id="btn-buy" class="action-btn action-btn--buy hidden">Buy Property <span
+                        style="font-size: 0.6rem; vertical-align: top; margin-left: 4px; opacity: 0.7;">[Q]</span></button>
+                <button id="btn-sell-upgrade" class="action-btn action-btn--downgrade hidden">Downgrade Degree <span
+                        style="font-size: 0.6rem; vertical-align: top; margin-left: 4px; opacity: 0.7;">[S]</span></button>
+                <button id="btn-upgrade" class="action-btn action-btn--upgrade hidden">Upgrade Degree <span
+                        style="font-size: 0.6rem; vertical-align: top; margin-left: 4px; opacity: 0.7;">[W]</span></button>
+                <button id="btn-trade" class="action-btn action-btn--trade hidden" style="margin-top: 6px;">🤝 Trade
+                    <span
+                        style="font-size: 0.6rem; vertical-align: top; margin-left: 4px; opacity: 0.7;">[T]</span></button>
+                <button id="btn-end-turn" class="action-btn action-btn--end hidden">End Turn <span
+                        style="font-size: 0.6rem; vertical-align: top; margin-left: 4px; opacity: 0.7;">[Enter]</span></button>
+                <button id="btn-declare-bankruptcy" class="action-btn action-btn--bankrupt hidden">Declare Bankruptcy
+                    <span
+                        style="font-size: 0.6rem; vertical-align: top; margin-left: 4px; opacity: 0.7;">[K]</span></button>
+                <button id="btn-pay-gap-year" class="action-btn action-btn--gap-year hidden">Pay £50 Buyout <span
+                        style="font-size: 0.6rem; vertical-align: top; margin-left: 4px; opacity: 0.7;">[Q]</span></button>
+                <button id="btn-roll-gap-year" class="action-btn action-btn--gap-year hidden">Roll to Escape <span
+                        style="font-size: 0.6rem; vertical-align: top; margin-left: 4px; opacity: 0.7;">[Enter]</span></button>
             </div>
         </aside>
 

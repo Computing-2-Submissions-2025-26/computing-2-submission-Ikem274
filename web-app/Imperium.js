@@ -729,12 +729,6 @@ Imperium.end_turn = function (state) {
     let nextIndex = (state.currentPlayerIndex + 1) % playersCount;
     let newRound = state.round;
 
-    let safety = 0;
-    while (state.players[nextIndex].isBankrupt && safety < playersCount) {
-        nextIndex = (nextIndex + 1) % playersCount;
-        safety++;
-    }
-
     if (nextIndex <= state.currentPlayerIndex) {
         newRound++;
     }
@@ -908,6 +902,77 @@ Imperium.check_winner = function (state) {
     }
 
     return state;
+};
+
+/**
+ * Executes a trade between two players, exchanging money and/or properties.
+ * @memberof Imperium
+ * @function
+ * @param {Imperium.GameState} state The current game state.
+ * @param {number} fromIndex The index of the player initiating the trade.
+ * @param {number} toIndex The index of the player receiving the trade.
+ * @param {Object} offer The trade offer.
+ * @param {number} offer.moneyFromA Money offered by player A (fromIndex).
+ * @param {number} offer.moneyFromB Money offered by player B (toIndex).
+ * @param {number[]} offer.propertiesFromA Tile IDs offered by player A.
+ * @param {number[]} offer.propertiesFromB Tile IDs offered by player B.
+ * @returns {Imperium.GameState|null} The new game state after trade, or null if invalid.
+ */
+Imperium.execute_trade = function (state, fromIndex, toIndex, offer) {
+    const playerA = state.players[fromIndex];
+    const playerB = state.players[toIndex];
+
+    if (!playerA || !playerB) return null;
+    if (playerA.isBankrupt || playerB.isBankrupt) return null;
+
+    // Validate money
+    if (offer.moneyFromA < 0 || offer.moneyFromB < 0) return null;
+    if (playerA.money < offer.moneyFromA) return null;
+    if (playerB.money < offer.moneyFromB) return null;
+
+    // Validate property ownership
+    const aOwnsAll = R.all(
+        (tileId) => R.includes(tileId, playerA.properties),
+        offer.propertiesFromA
+    );
+    const bOwnsAll = R.all(
+        (tileId) => R.includes(tileId, playerB.properties),
+        offer.propertiesFromB
+    );
+    if (!aOwnsAll || !bOwnsAll) return null;
+
+    // Reject trades involving upgraded properties
+    const hasUpgrades = R.any(
+        (tileId) => (state.propertyLevels[tileId] || 0) > 0,
+        R.concat(offer.propertiesFromA, offer.propertiesFromB)
+    );
+    if (hasUpgrades) return null;
+
+    // Transfer money
+    const netMoneyToA = offer.moneyFromB - offer.moneyFromA;
+    const updatedPlayerA = R.pipe(
+        R.over(R.lensProp("money"), R.add(netMoneyToA)),
+        R.over(R.lensProp("properties"), R.pipe(
+            R.without(offer.propertiesFromA),
+            R.concat(R.__, offer.propertiesFromB)
+        ))
+    )(playerA);
+
+    const netMoneyToB = offer.moneyFromA - offer.moneyFromB;
+    const updatedPlayerB = R.pipe(
+        R.over(R.lensProp("money"), R.add(netMoneyToB)),
+        R.over(R.lensProp("properties"), R.pipe(
+            R.without(offer.propertiesFromB),
+            R.concat(R.__, offer.propertiesFromA)
+        ))
+    )(playerB);
+
+    const updatePlayers = R.pipe(
+        R.adjust(fromIndex, R.always(updatedPlayerA)),
+        R.adjust(toIndex, R.always(updatedPlayerB))
+    );
+
+    return R.over(R.lensProp("players"), updatePlayers, state);
 };
 
 export default Object.freeze(Imperium);

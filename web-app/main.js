@@ -1,10 +1,8 @@
 import R from "./ramda.js";
 import Imperium from "./Imperium.js";
 
-// ============================================================
-// Tile images mapping
-// ============================================================
-const TILE_IMAGES = {
+// ------------------Tile images----------------------------
+const Tile_Images = {
     1: "Tiles/Student_Finance.svg", 2: "Tiles/Huxley.svg", 3: "Tiles/Bills_Due.svg",
     4: "Tiles/Westbound_Station.svg", 5: "Tiles/Blackett.svg", 6: "Tiles/Event_Card1.svg",
     7: "Tiles/Roderic_Hill.svg", 8: "Tiles/Gap_Year.svg", 9: "Tiles/Science_Museum.svg",
@@ -16,26 +14,27 @@ const TILE_IMAGES = {
     25: "Tiles/Queens_Tower.svg", 26: "Tiles/Event_Card4.svg", 27: "Tiles/Rent_Due.svg",
     28: "Tiles/Royal_Albert_Hall.svg"
 };
-const TILE_INFO = {
+const Tile_Info = {
     2: "Tile_info/HuxleyRent.svg", 4: "Tile_info/WestboundRent.svg", 5: "Tile_info/BlackettRent.svg",
-    7: "Tile_info/RodericRent.svg", 9: "Tile_info/ScienceMuseumRent.svg", 10: "Tile_info/FlemmingRent.svg",
+    7: "Tile_info/RodericRent.svg", 9: "Tile_info/ScienceRent.svg", 10: "Tile_info/FlemmingRent.svg",
     11: "Tile_info/BusinessRent.svg", 13: "Tile_info/AcexRent.svg", 14: "Tile_info/DysonRent.svg",
-    16: "Tile_info/SherfieldRent.svg", 18: "Tile_info/AbdusRent.svg", 20: "Tile_info/HammersmithRent.svg",
-    21: "Tile_info/CharingRent.svg", 23: "Tile_info/WhiteRent.svg", 25: "Tile_info/QueensRent.svg",
-    28: "Tile_info/RoyalRent.svg"
+    16: "Tile_info/SherfieldRent.svg", 18: "Tile_info/AbdusRent.svg", 19: "Tile_info/EastboundRent.svg",
+    20: "Tile_info/HammersmithRent.svg", 21: "Tile_info/CharingRent.svg", 23: "Tile_info/WhiteRent.svg",
+    24: "Tile_info/HistoryRent.svg", 25: "Tile_info/QueensRent.svg", 28: "Tile_info/RoyalRent.svg"
 };
 
+/** Human-readable names for upgrade levels. */
+const Degree_Names = { 1: "Bachelor's Degree", 2: "Master's Degree", 3: "PhD" };
 
-// ============================================================
-// State
-// ============================================================
+
+// ------------------State-------------------------------------
 let gameState = null;
 let selectedIcons = {}; // Maps player index to their chosen emoji
 
 // ── UI Helpers ──────────────────────────────────────────────
 
 /**
- * Convenience function to grab a DOM element by its ID.
+ * shortening element function
  */
 const getEl = (id) => document.getElementById(id);
 
@@ -44,9 +43,7 @@ const getEl = (id) => document.getElementById(id);
  */
 const getActivePlayers = R.filter(R.pipe(R.prop("isBankrupt"), R.not));
 
-// ============================================================
-// Setup Screen
-// ============================================================
+// ------------------Setup Screen---------------------
 
 /**
  * Initialises the main home screen where players select how many are playing,
@@ -203,9 +200,8 @@ const validateHome = (container, btn) => {
     btn.disabled = inputs.length === 0 || !allHaveIcons;
 };
 
-// ============================================================
-// Game Launch
-// ============================================================
+
+// ------------------Game Launch---------------------
 
 /**
  * Transitions from the setup screen to the actual game board.
@@ -231,9 +227,8 @@ const launchGame = (players) => {
     console.log("Game started!", gameState);
 };
 
-// ============================================================
-// Board Rendering
-// ============================================================
+
+// ------------------Board Rendering---------------------
 
 /**
  * Loads the background images onto the game board tiles.
@@ -245,7 +240,7 @@ const loadTileImages = () => {
         if (el && imgPath) {
             el.style.backgroundImage = `url('./assets/${imgPath}')`;
         }
-    }, R.toPairs(TILE_IMAGES));
+    }, R.toPairs(Tile_Images));
 };
 
 /**
@@ -332,11 +327,26 @@ const renderOwnerIcons = () => {
 };
 
 /**
- * Draws green blocks (houses) or red blocks (hotels) on upgraded properties.
+ * Draws scroll icons (levels 1–2) or a certificate icon (level 3) on upgraded properties.
  */
 const renderUpgradeIndicators = () => {
     document.querySelectorAll(".tile-upgrade-indicator").forEach(el => el.remove());
     if (!gameState) return;
+
+    const scrollSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"`
+        + ` stroke="#d4a017" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
+        + ` style="margin:0 1px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4));">`
+        + `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>`
+        + `<polyline points="14 2 14 8 20 8"/>`
+        + `<line x1="16" y1="13" x2="8" y2="13"/>`
+        + `<line x1="16" y1="17" x2="8" y2="17"/>`
+        + `<polyline points="10 9 9 9 8 9"/></svg>`;
+
+    const certSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"`
+        + ` stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
+        + ` style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));">`
+        + `<circle cx="12" cy="8" r="6"/>`
+        + `<path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>`;
 
     R.forEachObjIndexed((level, tileId) => {
         if (level <= 0) return;
@@ -347,11 +357,10 @@ const renderUpgradeIndicators = () => {
         const indicator = document.createElement("div");
         indicator.className = "tile-upgrade-indicator";
 
-        // Level 3 gets a big red hotel icon, others get green house icons
         if (level === 3) {
-            indicator.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#e74c3c" stroke="#fff" stroke-width="2"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 7h2M9 11h2M9 15h2M13 7h2M13 11h2M13 15h2"></path></svg>`;
+            indicator.innerHTML = certSvg;
         } else {
-            indicator.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="#2ecc71" stroke="#fff" stroke-width="2" style="margin:0 1px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`.repeat(level);
+            indicator.innerHTML = scrollSvg.repeat(level);
         }
         tileEl.appendChild(indicator);
     }, gameState.propertyLevels);
@@ -434,7 +443,8 @@ const renderPlayerPanel = () => {
                 // Add a level badge if they've upgraded it
                 const upgradeLevel = gameState.propertyLevels[tileId] || 0;
                 if (upgradeLevel > 0) {
-                    chip.innerHTML += `<div class="prop-chip-level">L${upgradeLevel}</div>`;
+                    const degreeLabel = Degree_Names[upgradeLevel] || `Level ${upgradeLevel}`;
+                    chip.innerHTML += `<div class="prop-chip-level">${degreeLabel}</div>`;
                 }
 
                 propsList.appendChild(chip);
@@ -467,10 +477,11 @@ const updateActionButtons = () => {
     const btnDeclareBankruptcy = getEl("btn-declare-bankruptcy");
     const btnPayGapYear = getEl("btn-pay-gap-year");
     const btnRollGapYear = getEl("btn-roll-gap-year");
+    const btnTrade = getEl("btn-trade");
 
     // Hide everything initially
-    const allButtons = [btnRoll, btnBuy, btnUpgrade, btnSellUpgrade, btnEnd, btnDeclareBankruptcy, btnPayGapYear, btnRollGapYear];
-    R.forEach(b => b.classList.add("hidden"), allButtons);
+    const allButtons = [btnRoll, btnBuy, btnUpgrade, btnSellUpgrade, btnEnd, btnDeclareBankruptcy, btnPayGapYear, btnRollGapYear, btnTrade];
+    R.forEach(b => b && b.classList.add("hidden"), allButtons);
 
     if (gameState.phase === "game_over" || player.isBankrupt) return;
 
@@ -494,6 +505,7 @@ const updateActionButtons = () => {
     // --- LANDED ON TILE LOGIC ---
     if (gameState.phase === "landed") {
         btnEnd.classList.remove("hidden");
+        btnTrade.classList.remove("hidden");
 
         const tile = Imperium.get_tile_data(player.position);
 
@@ -588,9 +600,7 @@ const animateMovement = async (steps) => {
     }
 };
 
-// ============================================================
-// Central Landing Hub
-// ============================================================
+// ------------------ Landing Mechanics ------------------
 
 /**
  * Called right after a player lands on a new tile.
@@ -646,9 +656,7 @@ const handleLandingUI = () => {
     updateActionButtons();
 };
 
-// ============================================================
-// Modals
-// ============================================================
+// --------------------- Modals ----------------------
 
 /**
  * Opens the modal dialog with the given HTML content.
@@ -676,7 +684,6 @@ const closeModal = () => {
 /**
  * Pops up a detailed card for a specific property.
  * @param {number} tileId
-
  * @param {boolean} infoOnly
  */
 const showPropertyCard = (tileId, infoOnly = false) => {
@@ -685,24 +692,55 @@ const showPropertyCard = (tileId, infoOnly = false) => {
 
     const owner = Imperium.find_owner(gameState, tileId);
     const player = Imperium.current_player(gameState);
+    const playerIndex = gameState.currentPlayerIndex;
 
     let canBuy = false;
     if (!infoOnly && !owner && Imperium.is_property(tileId) && player.money >= tile.price) {
         canBuy = true;
     }
 
+    // Check if the current player owns this and can upgrade/downgrade
+    const ownerIndex = owner ? gameState.players.indexOf(owner) : -1;
+    const isOwnerCurrentPlayer = ownerIndex === playerIndex;
+    const level = gameState.propertyLevels[tileId] || 0;
+    const ownsSet = isOwnerCurrentPlayer
+        ? Imperium.owns_full_set(gameState, ownerIndex, tile.colourGroup)
+        : false;
+
+    let canUpgrade = false;
+    let canDowngrade = false;
+    if (isOwnerCurrentPlayer && gameState.phase === "landed") {
+        if (ownsSet && tile.upgradeCost && level < 3 && player.money >= tile.upgradeCost) {
+            canUpgrade = true;
+        }
+        if (level > 0 && tile.sellPrice) {
+            canDowngrade = true;
+        }
+    }
+
     // Build the SVG info card view
-    let imageContent = TILE_INFO[tileId]
-        ? `<img src="./assets/${TILE_INFO[tileId]}" alt="${tile.name}" class="prop-card-img" />`
+    let imageContent = Tile_Info[tileId]
+        ? `<img src="./assets/${Tile_Info[tileId]}" alt="${tile.name}" class="prop-card-img" />`
         : `<div class="prop-card-fallback">No Info Card Available</div>`;
+
+    let buttonsHtml = "";
+    if (canBuy) {
+        buttonsHtml += `<button class="action-btn action-btn--buy" id="modal-buy" style="margin-top: 10px; min-width: 120px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Buy — £${tile.price}</button>`;
+    }
+    if (canUpgrade) {
+        buttonsHtml += `<button class="action-btn action-btn--buy" id="modal-upgrade" style="margin-top: 10px; min-width: 120px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Upgrade — £${tile.upgradeCost}</button>`;
+    }
+    if (canDowngrade) {
+        buttonsHtml += `<button class="action-btn action-btn--buy" id="modal-downgrade" style="margin-top: 10px; min-width: 120px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Downgrade +£${tile.sellPrice}</button>`;
+    }
+    buttonsHtml += `<button class="action-btn action-btn--end" id="modal-close" style="margin-top: 10px; min-width: 120px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Close</button>`;
 
     let html = `
     <div class="prop-card-image-container">
         ${imageContent}
     </div>
-    <div style="text-align: center; display: flex; justify-content: center; gap: 10px;">
-        ${canBuy ? `<button class="action-btn action-btn--buy" id="modal-buy" style="margin-top: 10px; width: 140px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Buy — £${tile.price}</button>` : ""}
-        <button class="action-btn action-btn--end" id="modal-close" style="margin-top: 10px; width: 140px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Close</button>
+    <div style="text-align: center; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+        ${buttonsHtml}
     </div>`;
 
     openModal(html, true);
@@ -720,13 +758,42 @@ const showPropertyCard = (tileId, infoOnly = false) => {
             updateActionButtons();
         });
     }
+    if (canUpgrade) {
+        getEl("modal-upgrade").addEventListener("click", () => {
+            const levelBefore = gameState.propertyLevels[tileId] || 0;
+            gameState = Imperium.upgrade_property(gameState, tileId);
+            const levelAfter = gameState.propertyLevels[tileId] || 0;
+            if (levelAfter > levelBefore) {
+                const degreeName = Degree_Names[levelAfter] || `Level ${levelAfter}`;
+                showToast(`Upgraded ${tile.name} to ${degreeName}!`, "gain");
+            }
+            closeModal();
+            renderPlayerPanel();
+            renderUpgradeIndicators();
+            updateActionButtons();
+        });
+    }
+    if (canDowngrade) {
+        getEl("modal-downgrade").addEventListener("click", () => {
+            gameState = Imperium.sell_property_upgrade(gameState, tileId);
+            const levelAfter = gameState.propertyLevels[tileId] || 0;
+            const degreeName = levelAfter > 0
+                ? Degree_Names[levelAfter] || `Level ${levelAfter}`
+                : "no degree";
+            showToast(`Downgraded ${tile.name} to ${degreeName}!`, "gain");
+            closeModal();
+            renderPlayerPanel();
+            renderUpgradeIndicators();
+            updateActionButtons();
+        });
+    }
 };
 
 /** Quick wrapper to show property info when clicked on the board. */
 const showPropertyInfo = (tileId) => {
     const tile = Imperium.get_tile_data(tileId);
-    // Ignore non-properties
-    if (!tile || ["event", "go", "tax", "go_to_gap_year", "free_parking"].includes(tile.type)) return;
+    // Only show for buyable property tiles
+    if (!tile || tile.type !== "property") return;
 
     showPropertyCard(tileId, true);
 };
@@ -775,9 +842,7 @@ const showEventCard = (card) => {
     });
 };
 
-// ============================================================
-// Toasts
-// ============================================================
+// -------------------- Toast Notifications --------------------
 
 /**
  * Shows a quick fading notification at the bottom.
@@ -794,13 +859,11 @@ const showToast = (message, type = "info") => {
     setTimeout(() => toast.remove(), 3200);
 };
 
-// ============================================================
-// Wiring Action Buttons to Logic
-// ============================================================
+// --------------- Wiring Action Buttons to Logic ---------------
 
 const wireButtons = () => {
 
-    // 🎲 ROLL DICE
+    // Roll Dice
     getEl("btn-roll").addEventListener("click", async () => {
         getEl("btn-roll").disabled = true;
 
@@ -829,7 +892,7 @@ const wireButtons = () => {
         handleLandingUI();
     });
 
-    // 💰 BUY PROPERTY
+    // Buy Property
     getEl("btn-buy").addEventListener("click", () => {
         const player = Imperium.current_player(gameState);
         const tile = Imperium.get_tile_data(player.position);
@@ -853,7 +916,8 @@ const wireButtons = () => {
         const levelAfter = gameState.propertyLevels[player.position] || 0;
 
         if (levelAfter > levelBefore) {
-            showToast(`Upgraded ${tile.name} to ${levelAfter}!`, "gain");
+            const degreeName = Degree_Names[levelAfter] || `Level ${levelAfter}`;
+            showToast(`Upgraded ${tile.name} to ${degreeName}!`, "gain");
         }
         renderPlayerPanel();
         renderUpgradeIndicators();
@@ -867,14 +931,18 @@ const wireButtons = () => {
         if (!tile) return;
 
         gameState = Imperium.sell_property_upgrade(gameState, player.position);
-        showToast(`Downgrade on ${tile.name}!`, "gain");
+        const levelAfter = gameState.propertyLevels[player.position] || 0;
+        const degreeName = levelAfter > 0
+            ? Degree_Names[levelAfter] || `Level ${levelAfter}`
+            : "no degree";
+        showToast(`Downgraded ${tile.name} to ${degreeName}!`, "gain");
 
         renderPlayerPanel();
         renderUpgradeIndicators();
         updateActionButtons();
     });
 
-    // ⏭️ END TURN
+    // End Turn
     getEl("btn-end-turn").addEventListener("click", () => {
         gameState = Imperium.end_turn(gameState);
         getEl("die-face").textContent = "?";
@@ -959,15 +1027,206 @@ const wireButtons = () => {
         updateActionButtons();
     });
 
-    // ❌ MODAL BACKGROUND CLICK
+    // Modal Background Click
     getEl("modal-overlay").addEventListener("click", (e) => {
         if (e.target.id === "modal-overlay") closeModal();
     });
+
+    // Trade Modal Logic
+    getEl("btn-trade").addEventListener("click", () => {
+        if (!gameState) return;
+        const player = Imperium.current_player(gameState);
+        const playerIndex = gameState.currentPlayerIndex;
+
+        // Select an opponent
+        let optionsHtml = gameState.players.map((p, i) => {
+            if (i === playerIndex || p.isBankrupt) return "";
+            return `<option value="${i}">${p.name} ${p.emoji}</option>`;
+        }).join("");
+
+        if (!optionsHtml.trim()) {
+            showToast("No active players to trade with.", "lose");
+            return;
+        }
+
+        let html = `
+        <div style="text-align:center; padding: 20px; color: var(--text-primary);">
+            <h2 style="margin-top:0;">Trade</h2>
+            <p>Select a player to trade with:</p>
+            <select id="trade-target" class="trade-input" style="width: 200px; margin-bottom: 20px;">
+                ${optionsHtml}
+            </select>
+            <br/>
+            <button class="action-btn action-btn--buy" id="trade-next">Next</button>
+            <button class="action-btn action-btn--end" id="trade-cancel" style="margin-left: 10px;">Cancel</button>
+        </div>`;
+
+        openModal(html, false);
+
+        getEl("trade-cancel").addEventListener("click", closeModal);
+        getEl("trade-next").addEventListener("click", () => {
+            const targetIndex = parseInt(getEl("trade-target").value, 10);
+            openTradeOfferBuilder(playerIndex, targetIndex);
+        });
+    });
+
+    // Global Keyboard Accessibility
+    document.addEventListener("keydown", (e) => {
+        // Don't trigger if typing in an input
+        if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+
+        const overlay = getEl("modal-overlay");
+        const isModalOpen = !overlay.classList.contains("hidden");
+
+        // Map keys to buttons if the button is visible and not disabled
+        const triggerBtn = (id) => {
+            const btn = getEl(id);
+            if (btn && !btn.classList.contains("hidden") && !btn.disabled) {
+                btn.click();
+                return true;
+            }
+            return false;
+        };
+
+        // Escape to close modal
+        if (e.key === "Escape") {
+            if (isModalOpen) closeModal();
+            return;
+        }
+
+        switch (e.key.toLowerCase()) {
+            case "enter":
+                if (isModalOpen) {
+                    triggerBtn("modal-close");
+                    // If trade builder or event card is open with their own confirm/ok buttons
+                    triggerBtn("trade-confirm");
+                    triggerBtn("trade-next");
+                } else {
+                    if (!triggerBtn("btn-roll")) {
+                        triggerBtn("btn-end-turn");
+                        triggerBtn("btn-roll-gap-year");
+                    }
+                }
+                break;
+            case "q":
+                triggerBtn("btn-buy");
+                triggerBtn("btn-pay-gap-year");
+                break;
+            case "w":
+                triggerBtn("btn-upgrade");
+                break;
+            case "s":
+                triggerBtn("btn-sell-upgrade");
+                break;
+            case "d":
+                triggerBtn("btn-end-turn");
+                break;
+            case "t":
+                triggerBtn("btn-trade");
+                break;
+            case "k":
+                triggerBtn("btn-declare-bankruptcy");
+                break;
+        }
+    });
 };
 
-// ============================================================
-// Game Over
-// ============================================================
+/**
+ * Opens the two-column trade offer builder.
+ */
+const openTradeOfferBuilder = (fromIndex, toIndex) => {
+    const playerA = gameState.players[fromIndex];
+    const playerB = gameState.players[toIndex];
+
+    // Helper to render property checkboxes
+    const renderProps = (player, prefix) => {
+        if (player.properties.length === 0) return `<p style="font-size: 0.8rem; color: var(--text-muted);">No properties</p>`;
+        return player.properties.map(tileId => {
+            const data = Imperium.get_tile_data(tileId);
+            const level = gameState.propertyLevels[tileId] || 0;
+            const disabled = level > 0 ? "disabled" : "";
+            const disabledText = level > 0 ? `<span style="color:var(--text-danger); font-size: 0.7rem;">(Upgraded)</span>` : "";
+            return `
+                <label style="display:block; margin: 4px 0; font-size: 0.9rem; text-align: left; opacity: ${level > 0 ? 0.5 : 1};">
+                    <input type="checkbox" name="${prefix}-props" value="${tileId}" ${disabled}>
+                    ${data.name} ${disabledText}
+                </label>
+            `;
+        }).join("");
+    };
+
+    let html = `
+    <div style="padding: 20px; width: 100%; min-width: 480px; color: var(--text-primary); box-sizing: border-box;">
+        <h2 style="margin-top:0; text-align:center;">Trade Offer</h2>
+        <div style="display: flex; gap: 20px; flex-wrap: nowrap;">
+            <!-- Player A -->
+            <div style="flex: 1; padding: 10px; background: var(--bg-panel); border-radius: 8px;">
+                <h3 style="margin-top:0; color: var(--accent);">${playerA.name} Offers:</h3>
+                <label style="display:block; margin-bottom: 10px; font-weight: 600;">
+                    Money (£): <br/>
+                    <input type="number" id="trade-money-a" class="trade-input" value="0" min="0" max="${playerA.money}" style="width: 100%;">
+                    <small style="color: var(--text-muted);">Max: £${playerA.money}</small>
+                </label>
+                <div style="font-weight: 600;">Properties:</div>
+                <div style="max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+                    ${renderProps(playerA, 'a')}
+                </div>
+            </div>
+            
+            <!-- Player B -->
+            <div style="flex: 1; padding: 10px; background: var(--bg-panel); border-radius: 8px;">
+                <h3 style="margin-top:0; color: var(--accent);">${playerB.name} Offers:</h3>
+                <label style="display:block; margin-bottom: 10px; font-weight: 600;">
+                    Money (£): <br/>
+                    <input type="number" id="trade-money-b" class="trade-input" value="0" min="0" max="${playerB.money}" style="width: 100%;">
+                    <small style="color: var(--text-muted);">Max: £${playerB.money}</small>
+                </label>
+                <div style="font-weight: 600;">Properties:</div>
+                <div style="max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+                    ${renderProps(playerB, 'b')}
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="action-btn action-btn--buy" id="trade-confirm" style="width: 150px;">Execute Trade</button>
+            <button class="action-btn action-btn--end" id="trade-cancel-builder" style="width: 150px; margin-left: 10px;">Cancel</button>
+        </div>
+    </div>`;
+
+    openModal(html, false);
+
+    getEl("trade-cancel-builder").addEventListener("click", closeModal);
+    getEl("trade-confirm").addEventListener("click", () => {
+        const moneyA = parseInt(getEl("trade-money-a").value, 10) || 0;
+        const moneyB = parseInt(getEl("trade-money-b").value, 10) || 0;
+
+        const propsA = Array.from(document.querySelectorAll('input[name="a-props"]:checked')).map(cb => parseInt(cb.value, 10));
+        const propsB = Array.from(document.querySelectorAll('input[name="b-props"]:checked')).map(cb => parseInt(cb.value, 10));
+
+        const offer = {
+            moneyFromA: moneyA,
+            moneyFromB: moneyB,
+            propertiesFromA: propsA,
+            propertiesFromB: propsB
+        };
+
+        const newState = Imperium.execute_trade(gameState, fromIndex, toIndex, offer);
+
+        if (!newState) {
+            showToast("Invalid trade offer! Check money and upgrades.", "lose");
+        } else {
+            gameState = newState;
+            showToast(`Trade executed between ${playerA.name} and ${playerB.name}!`, "gain");
+            closeModal();
+            renderPlayerPanel();
+            renderOwnerIcons();
+            updateActionButtons();
+        }
+    });
+};
+
+// --------------- Game Over ------------------
 
 /**
  * Shows the win screen with the winner's details.
@@ -981,9 +1240,7 @@ const showWinScreen = (winner) => {
     screen.classList.remove("hidden");
 };
 
-// ============================================================
-// Boot Sequence
-// ============================================================
+// ------------------ Boot Sequence ------------------
 
 window.addEventListener("DOMContentLoaded", () => {
     console.log("Imperium UI Initialised — using Imperium.js");
