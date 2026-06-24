@@ -341,8 +341,9 @@ body {
 
 /* ====== BOARD ====== */
 .board {
-    width: min(88vh, calc(100% - 0px));
-    height: min(88vh, calc(100% - 0px));
+    width: min(88vh, 100%);
+    aspect-ratio: 1/1;
+    height: auto;
     aspect-ratio: 1/1;
     max-width: 840px;
     max-height: 840px;
@@ -367,10 +368,13 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     transition: all 0.3s var(--ease-out);
+}
+
+.interactable-tile {
     cursor: pointer;
 }
 
-.tile:hover {
+.interactable-tile:hover {
     transform: scale(1.08);
     z-index: 10;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
@@ -819,12 +823,12 @@ body {
 }
 
 .action-btn {
-    padding: 10px 14px;
+    padding: 14px 18px;
     border: none;
     border-radius: var(--radius-sm);
     font-family: 'Inter', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: 1.05rem;
+    font-weight: 800;
     cursor: pointer;
     transition: all 0.2s var(--ease-out);
     text-align: center;
@@ -848,7 +852,14 @@ body {
 .action-btn--buy {
     background: linear-gradient(135deg, #2ecc71, #27ae60);
     color: #fff;
-    box-shadow: 0 4px 16px rgba(46, 204, 113, 0.4);
+    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.action-btn--buy:hover:not(:disabled) {
+    box-shadow: 0 8px 24px rgba(46, 204, 113, 0.65);
+    transform: translateY(-2px);
 }
 
 .action-btn--end {
@@ -880,101 +891,48 @@ body {
     border: 1px solid var(--border-active);
     border-radius: var(--radius-lg);
     padding: 0;
-    max-width: 380px;
+    max-width: 350px;
     width: 90vw;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     overflow: hidden;
 }
 
+.modal-content--transparent {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible;
+}
+
 /* Property card inside modal */
-.prop-card-header {
-    padding: 18px 24px;
-    color: #fff;
-    font-weight: 900;
-    font-size: 1.1rem;
+.prop-card-image-container {
     text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-
-.prop-card-body {
-    padding: 20px 24px;
-}
-
-.prop-card-name {
-    font-size: 1.2rem;
-    font-weight: 800;
-    text-align: center;
-    margin-bottom: 12px;
-}
-
-.prop-card-desc {
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    margin-bottom: 12px;
-    line-height: 1.4;
-    text-align: center;
-}
-
-.prop-card-level {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    text-align: center;
-    margin-bottom: 8px;
-    background: rgba(231, 76, 60, 0.1);
-    padding: 4px;
-    border-radius: 4px;
-}
-
-.prop-card-price {
+    margin: 1rem auto;
     display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
-    font-size: 0.82rem;
-    border-bottom: 1px solid var(--border-subtle);
+    justify-content: center;
+    align-items: center;
+    width: 100%;
 }
 
-.prop-card-row:last-child {
-    border-bottom: none;
+.prop-card-img {
+    width: 100%;
+    height: auto;
+    max-height: 70vh;
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
 }
 
-.prop-card-row span:last-child {
-    font-weight: 700;
-    color: #2ecc71;
-}
-
-.prop-card-price {
-    font-size: 1.3rem;
-    font-weight: 900;
+.prop-card-fallback {
+    padding: 40px;
+    background: #eee;
+    font-weight: bold;
+    color: #555;
     text-align: center;
-    color: #2ecc71;
-    margin: 14px 0;
+    width: 100%;
 }
 
-.prop-card-owner {
-    text-align: center;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin: 10px 0;
-}
-
-.prop-card-owner strong {
-    color: var(--text-primary);
-}
-
-.prop-card-actions {
-    display: flex;
-    gap: 10px;
-    padding: 16px 24px;
-    border-top: 1px solid var(--border-subtle);
-}
-
-.prop-card-actions .action-btn {
-    flex: 1;
-}
+/* Removed redundant prop-card classes */
 
 /* Event card inside modal */
 .event-card-modal {

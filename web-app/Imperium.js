@@ -78,7 +78,7 @@ Imperium.gap_year_tile = 8;
 Imperium.go_to_gap_year_tile = 22;
 Imperium.bills_due_tile = 3;
 Imperium.rent_due_tile = 27;
-Imperium.free_parking_tile = 15;
+Imperium.student_union_tile = 15;
 Imperium.student_finance_money = 200;
 Imperium.gap_year_buyout = 50;
 Imperium.gap_year_escape_number = 6;
@@ -131,7 +131,7 @@ Imperium.property_data = {
     1: { name: "Student Finance", type: "Student_Finance", colourGroup: null, description: "Collect £200 when you land on or pass this tile." },
     2: { name: "Huxley", type: "property", price: 150, upgradeCost: 75, sellPrice: 50, rent: [0, 8, 30, 60, 180], colourGroup: "brown", description: "Huxley Building" },
     3: { name: "Bills Due", type: "tax", colourGroup: null, taxRate: 0.10, description: "Pay 10% of your total money." },
-    4: { name: "Westbound Station", type: "station", price: 250, rent: [100, 200], colourGroup: "station", description: "Take the shuttle service to the other campus." },
+    4: { name: "Westbound Station", type: "property", price: 250, rent: [100, 200], colourGroup: "station", description: "Take the shuttle service to the other campus." },
     5: { name: "Blackett", type: "property", price: 120, upgradeCost: 100, sellPrice: 75, rent: [6, 12, 30, 90, 270], colourGroup: "light_blue", description: "Blackett Laboratory" },
     6: { name: "Event Card", type: "event", colourGroup: null, description: "Draw an Event Card." },
     7: { name: "Roderic Hill", type: "property", price: 140, upgradeCost: 100, sellPrice: 75, rent: [8, 16, 40, 100, 300], colourGroup: "light_blue", description: "Roderic Hill" },
@@ -142,11 +142,11 @@ Imperium.property_data = {
     12: { name: "Event Card", type: "event", colourGroup: null, description: "Draw an Event Card." },
     13: { name: "Ace Workshop", type: "property", price: 200, upgradeCost: 150, sellPrice: 100, rent: [14, 28, 70, 200, 550], colourGroup: "orange", description: "The Design Engineering Workshop." },
     14: { name: "Dyson Building", type: "property", price: 220, upgradeCost: 150, sellPrice: 100, rent: [16, 32, 80, 220, 600], colourGroup: "orange", description: "The One and Only Dyson School of Design Engineering." },
-    15: { name: "Free Parking", type: "free_parking", colourGroup: null, description: "Rest here. Nothing happens." },
+    15: { name: "Student Union", type: "Student_Union", colourGroup: null, description: "Rest here. Nothing happens." },
     16: { name: "Sherfield Walkway", type: "property", price: 240, upgradeCost: 150, sellPrice: 100, rent: [18, 36, 90, 250, 700], colourGroup: "red", description: "Walkway with all the food you need." },
     17: { name: "Event Card", type: "event", colourGroup: null, description: "Draw an Event Card." },
     18: { name: "Abdus Salam Library", type: "property", price: 260, upgradeCost: 150, sellPrice: 100, rent: [20, 40, 100, 300, 750], colourGroup: "red", description: "The Central Library." },
-    19: { name: "Eastbound Station", type: "station", price: 250, rent: [100, 200], colourGroup: "station", description: "Take the shuttle service to the other campus." },
+    19: { name: "Eastbound Station", type: "property", price: 250, rent: [100, 200], colourGroup: "station", description: "Take the shuttle service to the other campus." },
     20: { name: "Hammersmith Hospital", type: "property", price: 280, upgradeCost: 200, sellPrice: 140, rent: [22, 44, 110, 330, 800], colourGroup: "yellow", description: "Hammersmith campus" },
     21: { name: "Charing Cross Hospital", type: "property", price: 300, upgradeCost: 200, sellPrice: 140, rent: [24, 48, 120, 360, 850], colourGroup: "yellow", description: "Charing Cross campus" },
     22: { name: "You Fail", type: "go_to_gap_year", colourGroup: null, description: "Go directly to Gap Year!" },
@@ -242,7 +242,7 @@ Imperium.is_event = R.pipe(
  */
 Imperium.is_station = R.pipe(
     Imperium.get_tile_data,
-    R.prop("type"),
+    R.prop("colourGroup"),
     R.equals("station")
 );
 
@@ -476,7 +476,7 @@ Imperium.handle_landing = function (state) {
         return { state, action: { type: "go", message: "Landed on Student Finance!" } };
     }
 
-    if (tile.type === "property" || tile.type === "station") {
+    if (tile.type === "property") {
         const owner = Imperium.find_owner(state, player.position);
 
         if (!owner) {
@@ -537,8 +537,8 @@ Imperium.handle_landing = function (state) {
         return { state, action: { type: "gap_year_visiting" } };
     }
 
-    if (tile.type === "free_parking") {
-        return { state, action: { type: "free_parking" } };
+    if (tile.type === "Student_Union") {
+        return { state, action: { type: "Student_Union" } };
     }
 
     return { state, action: { type: "none" } };

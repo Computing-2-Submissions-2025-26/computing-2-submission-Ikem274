@@ -2,7 +2,8 @@
 # Computing 2 Coursework Submission.
 **CID**: [02568041]
 
-This is the submission template for your Computing 2 Applications coursework submission.
+References:
+
 
 ## Checklist
 ### Install dependencies locally

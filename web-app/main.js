@@ -9,13 +9,22 @@ const TILE_IMAGES = {
     4: "Tiles/Westbound_Station.svg", 5: "Tiles/Blackett.svg", 6: "Tiles/Event_Card1.svg",
     7: "Tiles/Roderic_Hill.svg", 8: "Tiles/Gap_Year.svg", 9: "Tiles/Science_Museum.svg",
     10: "Tiles/Sir_Alexander_Fleming.svg", 11: "Tiles/Business_School.svg", 12: "Tiles/Event_Card2.svg",
-    13: "Tiles/Acex_Workshop.svg", 14: "Tiles/Dyson_Building.svg", 15: "Tiles/free_parking.svg",
+    13: "Tiles/Acex_Workshop.svg", 14: "Tiles/Dyson_Building.svg", 15: "Tiles/Student_Union.svg",
     16: "Tiles/Sherfield_Walkway.svg", 17: "Tiles/Event_Card3.svg", 18: "Tiles/Abdus_Salam_Library.svg",
     19: "Tiles/Eastbound_Station.svg", 20: "Tiles/Hammersmith.svg", 21: "Tiles/Charing_Cross_Hospital.svg",
     22: "Tiles/Failed.svg", 23: "Tiles/White_city.svg", 24: "Tiles/History_Museum.svg",
     25: "Tiles/Queens_Tower.svg", 26: "Tiles/Event_Card4.svg", 27: "Tiles/Rent_Due.svg",
     28: "Tiles/Royal_Albert_Hall.svg"
 };
+const TILE_INFO = {
+    2: "Tile_info/HuxleyRent.svg", 4: "Tile_info/WestboundRent.svg", 5: "Tile_info/BlackettRent.svg",
+    7: "Tile_info/RodericRent.svg", 9: "Tile_info/ScienceMuseumRent.svg", 10: "Tile_info/FlemmingRent.svg",
+    11: "Tile_info/BusinessRent.svg", 13: "Tile_info/AcexRent.svg", 14: "Tile_info/DysonRent.svg",
+    16: "Tile_info/SherfieldRent.svg", 18: "Tile_info/AbdusRent.svg", 20: "Tile_info/HammersmithRent.svg",
+    21: "Tile_info/CharingRent.svg", 23: "Tile_info/WhiteRent.svg", 25: "Tile_info/QueensRent.svg",
+    28: "Tile_info/RoyalRent.svg"
+};
+
 
 // ============================================================
 // State
@@ -246,7 +255,9 @@ const attachTileClickHandlers = () => {
     R.times(i => {
         const tileId = i + 1;
         const el = getEl(`tile-${tileId}`);
-        if (el) {
+        const tileData = Imperium.get_tile_data(tileId);
+        if (el && tileData && tileData.type === "property") {
+            el.classList.add("interactable-tile");
             el.addEventListener("click", () => showPropertyInfo(tileId));
         }
     }, Imperium.total_tiles);
@@ -501,12 +512,12 @@ const updateActionButtons = () => {
 
                 if (ownsFullSet && tile.upgradeCost && level < 3) {
                     btnUpgrade.classList.remove("hidden");
-                    btnUpgrade.textContent = `Buy House — £${tile.upgradeCost}`;
+                    btnUpgrade.textContent = `Upgrade — £${tile.upgradeCost}`;
                 }
 
                 if (level > 0 && tile.sellPrice) {
                     btnSellUpgrade.classList.remove("hidden");
-                    btnSellUpgrade.textContent = `Sell House — +£${tile.sellPrice}`;
+                    btnSellUpgrade.textContent = `Downgrade — +£${tile.sellPrice}`;
                 }
             }
         }
@@ -642,11 +653,19 @@ const handleLandingUI = () => {
 /**
  * Opens the modal dialog with the given HTML content.
  * @param {string} html
+ * @param {boolean} transparent
  */
-const openModal = (html) => {
+const openModal = (html, transparent = false) => {
     const overlay = getEl("modal-overlay");
     const content = getEl("modal-content");
     content.innerHTML = html;
+
+    if (transparent) {
+        content.classList.add("modal-content--transparent");
+    } else {
+        content.classList.remove("modal-content--transparent");
+    }
+
     overlay.classList.remove("hidden");
 };
 
@@ -656,93 +675,48 @@ const closeModal = () => {
 
 /**
  * Pops up a detailed card for a specific property.
- * Includes Buy/Upgrade/Sell buttons if the player is allowed to interact with it.
  * @param {number} tileId
+
  * @param {boolean} infoOnly
  */
-const showPropertyCard = (tileId, infoOnly) => {
+const showPropertyCard = (tileId, infoOnly = false) => {
     const tile = Imperium.get_tile_data(tileId);
     if (!tile) return;
-
-    const group = tile.colourGroup ? Imperium.get_colour_group(tile.colourGroup) : null;
-    const headerColour = group ? group.colour : "#555";
 
     const owner = Imperium.find_owner(gameState, tileId);
     const player = Imperium.current_player(gameState);
 
-    const ownerIndex = owner ? gameState.players.indexOf(owner) : -1;
-    const isOwnerCurrentPlayer = ownerIndex === gameState.currentPlayerIndex;
-    const level = gameState.propertyLevels[tileId] || 0;
-    const ownsSet = ownerIndex !== -1 ? Imperium.owns_full_set(gameState, ownerIndex, tile.colourGroup) : false;
+    let canBuy = false;
+    if (!infoOnly && !owner && Imperium.is_property(tileId) && player.money >= tile.price) {
+        canBuy = true;
+    }
 
-    // Build the beautiful SVG card view
+    // Build the SVG info card view
+    let imageContent = TILE_INFO[tileId]
+        ? `<img src="./assets/${TILE_INFO[tileId]}" alt="${tile.name}" class="prop-card-img" />`
+        : `<div class="prop-card-fallback">No Info Card Available</div>`;
+
     let html = `
-    <div class="prop-card-image-container" style="text-align: center; margin-bottom: 1rem; margin-top: 1rem;">
-        <svg width="300" height="450" viewBox="0 0 300 450" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
-            <rect width="300" height="450" fill="${headerColour}" />
-            <rect x="12" y="12" width="276" height="426" fill="#ffffff" rx="6" />
-            <rect x="12" y="12" width="276" height="100" fill="${headerColour}" rx="6" />
-            <text x="150" y="65" font-family="Inter, sans-serif" font-size="22" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${tile.name}</text>
-            <text x="150" y="190" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#2c3e50" text-anchor="middle">SVG Placeholder</text>
-            <circle cx="150" cy="250" r="30" fill="${headerColour}" opacity="0.2" />
-            <text x="150" y="320" font-family="Inter, sans-serif" font-size="12" fill="#7f8c8d" text-anchor="middle">Click to swap later with:</text>
-            <text x="150" y="340" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#e74c3c" text-anchor="middle">assets/Cards/${tileId}.svg</text>
-        </svg>
+    <div class="prop-card-image-container">
+        ${imageContent}
+    </div>
+    <div style="text-align: center; display: flex; justify-content: center; gap: 10px;">
+        ${canBuy ? `<button class="action-btn action-btn--buy" id="modal-buy" style="margin-top: 10px; width: 140px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Buy — £${tile.price}</button>` : ""}
+        <button class="action-btn action-btn--end" id="modal-close" style="margin-top: 10px; width: 140px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Close</button>
     </div>`;
 
-    if (owner) {
-        html += `<div class="prop-card-owner" style="text-align: center; margin-bottom: 1rem; font-size: 1.1rem;">Owned by <strong>${owner.name}</strong></div>`;
-    }
-
-    // Decide which buttons to show on the card
-    html += `<div class="prop-card-actions">`;
-    if (!infoOnly && !owner && Imperium.is_property(tileId) && player.money >= tile.price) {
-        html += `<button class="action-btn action-btn--buy" id="modal-buy">Buy — £${tile.price}</button>`;
-    } else if (isOwnerCurrentPlayer) {
-        if (level > 0 && tile.sellPrice) {
-            html += `<button class="action-btn action-btn--buy" id="modal-sell-upgrade">Sell House — +£${tile.sellPrice}</button>`;
-        }
-        if (ownsSet && tile.upgradeCost && level < 3 && player.money >= tile.upgradeCost) {
-            html += `<button class="action-btn action-btn--buy" id="modal-upgrade">Upgrade — £${tile.upgradeCost}</button>`;
-        }
-    }
-    html += `<button class="action-btn action-btn--end" id="modal-close">Close</button>`;
-    html += `</div>`;
-
-    openModal(html);
+    openModal(html, true);
 
     // Wire up the dynamic buttons
     getEl("modal-close").addEventListener("click", closeModal);
 
-    if (getEl("modal-buy")) {
+    if (canBuy) {
         getEl("modal-buy").addEventListener("click", () => {
             gameState = Imperium.buy_property(gameState);
             showToast(`Bought ${tile.name} for £${tile.price}!`, "gain");
             closeModal();
             renderPlayerPanel();
             renderOwnerIcons();
-            updateActionButtons();
-        });
-    }
-
-    if (getEl("modal-upgrade")) {
-        getEl("modal-upgrade").addEventListener("click", () => {
-            gameState = Imperium.upgrade_property(gameState, tileId);
-            showToast(`Upgraded ${tile.name} to Level ${level + 1}!`, "gain");
-            closeModal();
-            renderPlayerPanel();
-            renderUpgradeIndicators();
-            updateActionButtons();
-        });
-    }
-
-    if (getEl("modal-sell-upgrade")) {
-        getEl("modal-sell-upgrade").addEventListener("click", () => {
-            gameState = Imperium.sell_property_upgrade(gameState, tileId);
-            showToast(`Sold a house on ${tile.name}!`, "gain");
-            closeModal();
-            renderPlayerPanel();
-            renderUpgradeIndicators();
             updateActionButtons();
         });
     }
@@ -868,7 +842,7 @@ const wireButtons = () => {
         updateActionButtons();
     });
 
-    // 🏠 BUY HOUSE
+    // Upgrade Degree
     getEl("btn-upgrade").addEventListener("click", () => {
         const player = Imperium.current_player(gameState);
         const tile = Imperium.get_tile_data(player.position);
@@ -879,21 +853,21 @@ const wireButtons = () => {
         const levelAfter = gameState.propertyLevels[player.position] || 0;
 
         if (levelAfter > levelBefore) {
-            showToast(`Upgraded ${tile.name} to Level ${levelAfter}!`, "gain");
+            showToast(`Upgraded ${tile.name} to ${levelAfter}!`, "gain");
         }
         renderPlayerPanel();
         renderUpgradeIndicators();
         updateActionButtons();
     });
 
-    // 💸 SELL HOUSE
+    // Downgrade Degree
     getEl("btn-sell-upgrade").addEventListener("click", () => {
         const player = Imperium.current_player(gameState);
         const tile = Imperium.get_tile_data(player.position);
         if (!tile) return;
 
         gameState = Imperium.sell_property_upgrade(gameState, player.position);
-        showToast(`Sold a house on ${tile.name}!`, "gain");
+        showToast(`Downgrade on ${tile.name}!`, "gain");
 
         renderPlayerPanel();
         renderUpgradeIndicators();
@@ -916,7 +890,7 @@ const wireButtons = () => {
         }
     });
 
-    // 🚨 DECLARE BANKRUPTCY
+    // Declare Bankruptcy
     getEl("btn-declare-bankruptcy").addEventListener("click", () => {
         const player = Imperium.current_player(gameState);
 
@@ -937,7 +911,7 @@ const wireButtons = () => {
         updateActionButtons();
     });
 
-    // 💵 PAY GAP YEAR BUYOUT
+    // Pay gap year buyout
     getEl("btn-pay-gap-year").addEventListener("click", () => {
         const player = Imperium.current_player(gameState);
 
@@ -955,7 +929,7 @@ const wireButtons = () => {
         updateActionButtons();
     });
 
-    // 🎲 ROLL TO ESCAPE GAP YEAR
+    // Roll to escape Gap year
     getEl("btn-roll-gap-year").addEventListener("click", async () => {
         getEl("btn-roll-gap-year").disabled = true;
         getEl("btn-pay-gap-year").disabled = true;
