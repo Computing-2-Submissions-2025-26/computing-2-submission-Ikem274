@@ -61,7 +61,7 @@ const Degree_Names = {
 
 
 // ------------------State-------------------------------------
-let gameState = null;
+let gameState = undefined;
 let selectedIcons = {}; // Maps player index to their chosen emoji
 
 // ── UI Helpers ──────────────────────────────────────────────
@@ -509,7 +509,7 @@ const renderPlayerPanel = function () {
 
                 const group = (
                     (data && data.colourGroup) ?
-                        Imperium.get_colour_group(data.colourGroup) : null
+                        Imperium.get_colour_group(data.colourGroup) : undefined
                 );
 
                 const dotColor = (
@@ -990,7 +990,7 @@ const showEventCard = function (card) {
         "<div class=\"event-card-modal\">" +
         "<div class=\"event-card-top\">" +
         "<div class=\"event-card-subtitle\">Event Card</div>" +
-        "<h3>" + card.title + "</h3>" +
+        "<h2>" + card.title + "</h2>" +
         "</div>" +
 
         "<div class=\"event-card-body\">" +
@@ -1282,7 +1282,7 @@ const wireButtons = function () {
         color: var(--text-primary);">
             <h2 style="margin-top:0;">Trade</h2>
             <p>Select a player to trade with:</p>
-            <select id="trade-target" class="trade-input" style="width: 200px;
+            <select id="trade-target" aria-label="Select player to trade with" class="trade-input" style="width: 200px;
             margin-bottom: 20px;">
                 ${optionsHtml}
             </select>
@@ -1508,7 +1508,7 @@ const openTradeOfferBuilder = function (fromIndex, toIndex) {
 
 /**
  * Shows the win screen with the winner's details.
- * @param {Imperium.Player|null} winner
+ * @param {Imperium.Player|undefined} winner
  */
 const showWinScreen = function (winner) {
     const screen = getEl("win-screen");

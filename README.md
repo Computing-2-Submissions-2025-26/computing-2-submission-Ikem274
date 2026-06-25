@@ -14,7 +14,7 @@ AI was used to:
 Other notes:
 
 Icons were added using the Windows emoji picker (Windows + .).
-The Fisher–Yates shuffle algorithm was used for randomising arrays, based on examples from online sources such as https://dev.to/tanvir_azad/fisher-yates-shuffle-the-right-way-to-randomize-an-array-4d2p
+The Fisher–Yates shuffle algorithm was used for randomising arrays, based on examples from online sources such as https://dev.to/tanvir_azad/fisher-yates-shuffle-the-right-way-to-randomize-an-array-4d2p. This AI was then used to help turn this into a pure function.
 The project Zombie Siege was used as a reference when writing unit tests, especially for the TestHelpers file.
 
 ## Checklist
@@ -60,7 +60,7 @@ I'll run the same commands when I download your repos.
   - [ ] `main.js`
   - [ ] `Imperium.js`
   - [ ] `gameConfig.js`
-
+  
 ### Finally
 - [ ] Push to GitHub.
 - [ ] Sync the changes.

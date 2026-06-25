@@ -25,13 +25,14 @@
     --line-color: #2c3e50;
     --accent: #e74c3c;
     --accent-dark: #c0392b;
+    --round-color: #fbbf24;
     --bg-deep: #0d1117;
     --bg-panel: #161b22;
     --bg-card: #1c2333;
     --bg-card-hover: #21293a;
     --text-primary: #e6edf3;
-    --text-muted: #8b949e;
-    --text-dim: #484f58;
+    --text-dim: #8b949e;
+    --text-bright: #fcfcfc;
     --border-subtle: rgba(255, 255, 255, 0.07);
     --border-active: rgba(255, 255, 255, 0.18);
     --panel-width: 320px;
@@ -135,7 +136,7 @@ body {
     font-weight: 900;
     letter-spacing: 0.2rem;
     color: #fff;
-    background: var(--accent);
+    background: var(--accent-dark);
     padding: 8px 24px;
     border-radius: var(--radius-sm);
 }
@@ -144,7 +145,7 @@ body {
     margin-top: 10px;
     font-size: 0.78rem;
     font-weight: 400;
-    color: var(--text-muted);
+    color: var(--text-bright);
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -152,7 +153,7 @@ body {
 .home-section-title {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--text-bright);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     text-align: center;
@@ -195,7 +196,7 @@ body {
 .home-selected-label {
     text-align: center;
     font-size: 0.82rem;
-    color: var(--text-muted);
+    color: var(--text-bright);
     min-height: 1.2em;
 }
 
@@ -229,7 +230,7 @@ body {
 .home-player-label {
     font-weight: 600;
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--text-bright);
 }
 
 .home-name-input {
@@ -252,7 +253,7 @@ body {
 }
 
 .home-name-input::placeholder {
-    color: var(--text-dim);
+    color: var(--text-bright);
 }
 
 
@@ -262,7 +263,7 @@ body {
 .icon-picker-label {
     font-size: 0.7rem;
     font-weight: 600;
-    color: var(--text-dim);
+    color: var(--text-bright);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 6px;
@@ -334,7 +335,7 @@ body {
 .home-money-hint {
     text-align: center;
     font-size: 0.78rem;
-    color: var(--text-dim);
+    color: var(--text-bright);
 }
 
 .home-money-hint strong {
@@ -544,7 +545,7 @@ body {
     letter-spacing: 0.5rem;
     color: #fff;
     text-transform: uppercase;
-    background: var(--accent);
+    background: var(--accent-dark);
     padding: 0.5em 1em;
     border: 5px solid #fff;
     transform: rotate(-45deg);
@@ -580,17 +581,17 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    color: var(--text-muted);
+    color: var(--text-bright);
 }
 
 .panel-round {
     font-size: 0.72rem;
     font-weight: 600;
-    color: var(--accent);
-    background: rgba(231, 76, 60, 0.12);
+    color: var(--round-color);
+    background: rgba(251, 191, 36, 0.12);
     padding: 3px 10px;
     border-radius: 20px;
-    border: 1px solid rgba(231, 76, 60, 0.3);
+    border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
 .panel-players {
@@ -689,7 +690,7 @@ body {
 .pc-money {
     font-size: 1rem;
     font-weight: 700;
-    color: #2ecc71;
+    color: #4ade80;
     letter-spacing: 0.02em;
     margin-bottom: 6px;
 }
@@ -705,7 +706,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: var(--text-dim);
+    color: var(--text-bright);
     margin-bottom: 5px;
 }
 
@@ -722,7 +723,7 @@ body {
 
 .pc-props-empty {
     font-size: 0.72rem;
-    color: var(--text-dim);
+    color: var(--text-bright);
     font-style: italic;
 }
 
@@ -735,7 +736,7 @@ body {
     border-radius: 4px;
     padding: 2px 6px;
     font-size: 0.65rem;
-    color: var(--text-muted);
+    color: var(--text-dim);
     cursor: pointer;
     transition: background 0.2s;
 }

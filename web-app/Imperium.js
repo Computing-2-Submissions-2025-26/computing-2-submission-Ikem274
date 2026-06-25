@@ -12,6 +12,8 @@ const Imperium = Object.create(null);
 // ── 1. Data & Constants ────────────────────────────────────────
 
 /**
+ * Represents the complete state of an Imperium game at any given moment.
+ * Contains all players, the board's condition, and the current turn's details.
  * @memberof Imperium
  * @typedef {Object} GameState
  * @property {Imperium.Player[]} players Array of player objects.
@@ -24,8 +26,8 @@ const Imperium = Object.create(null);
  * @property {number} eventDeckIndex The current index in the event card deck.
  * @property {string} phase The current phase of the turn (i.e.
  *     'rolling', 'landed', 'game_over').
- * @property {number|null} lastDiceValue The value of the last rolled dice.
- * @property {Imperium.EventCard|null} pendingEvent The event card drawn.
+ * @property {number|undefined} lastDiceValue The value of the last rolled dice.
+ * @property {Imperium.EventCard|undefined} pendingEvent The event card drawn.
  * @property {boolean} hasRolled Whether the current player has rolled the dice.
  * @property {boolean} firstMove Whether it is the first move of the game.
  * @property {Object.<number, number>} propertyLevels Map of tile
@@ -34,6 +36,8 @@ const Imperium = Object.create(null);
  */
 
 /**
+ * Represents an individual participant in the game.
+ * Tracks their money, properties owned, and current board position.
  * @memberof Imperium
  * @typedef {Object} Player
  * @property {number} id The player's ID.
@@ -52,11 +56,13 @@ const Imperium = Object.create(null);
  */
 
 /**
+ * Defines the static properties of a square on the game board.
+ * Includes purchasing costs, rents, and group categories.
  * @memberof Imperium
  * @typedef {Object} TileData
  * @property {string} name The name of the tile.
  * @property {string} type The type of the tile.
- * @property {string|null} colourGroup The colour group the tile belongs to.
+ * @property {string|undefined} colourGroup The colour group the tile belongs to.
  * @property {string} description The description of the tile.
  * @property {number} [price] The initial purchase price.
  * @property {number} [upgradeCost] The cost to upgrade a property.
@@ -68,6 +74,8 @@ const Imperium = Object.create(null);
  */
 
 /**
+ * A card drawn when landing on an Event tile.
+ * Contains instructions that immediately affect the player.
  * @memberof Imperium
  * @typedef {Object} EventCard
  * @property {number} id The event card ID.
@@ -86,23 +94,27 @@ Object.assign(Imperium, gameConfig);
 // ── 2. Pure Initialization & Lookup Helpers ─────────────────────
 
 /**
- * Shuffles an array using the Fisher-Yates algorithm.
- * Returns a new shuffled copy without mutating the original.
+ * Randomises the order of elements in a given collection.
+ * Used for shuffling the event card deck or randomising the starting turn order.
  * @memberof Imperium
  * @function
  * @param {Array} array The array to shuffle.
  * @returns {Array} A new shuffled copy of the array.
  */
-Imperium.shuffle_array = function (array) {
+Imperium.shuffle_array = function (array, random) {
     const copy = [...array];
     let i = copy.length - 1;
+
     while (i > 0) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random() * (i + 1));
+
         const temp = copy[i];
         copy[i] = copy[j];
         copy[j] = temp;
+
         i -= 1;
     }
+
     return copy;
 };
 
@@ -208,12 +220,12 @@ const assignId = function (player, index) {
 };
 
 const preparePlayers = R.pipe(
-    Imperium.shuffle_array,
+    (players) => Imperium.shuffle_array(players, Math.random),
     R.addIndex(R.map)(assignId)
 );
 
 const prepareEventDeck = function () {
-    return Imperium.shuffle_array([...Imperium.event_cards]);
+    return Imperium.shuffle_array([...Imperium.event_cards], Math.random);
 };
 
 /**
@@ -234,8 +246,8 @@ Imperium.create_game_state = function (players) {
         eventDeck: prepareEventDeck(),
         eventDeckIndex: 0,
         phase: "roll",
-        lastDiceValue: null,
-        pendingEvent: null,
+        lastDiceValue: undefined,
+        pendingEvent: undefined,
         hasRolled: false,
         firstMove: true,
         propertyLevels: {}
@@ -515,13 +527,13 @@ Imperium.handle_landing = function (state) {
  * @function
  * @param {Imperium.GameState} state The current game state.
  * @param {number} tileId The ID of the tile to check.
- * @returns {Imperium.Player|null} The owner player, or null if unowned.
+ * @returns {Imperium.Player|undefined} The owner player, or undefined if unowned.
  */
 Imperium.find_owner = function (state, tileId) {
     const searchForOwner = R.pipe(
         R.prop("players"),
         R.find(R.pipe(R.prop("properties"), R.includes(tileId))),
-        R.defaultTo(null)
+        R.defaultTo(undefined)
     );
     return searchForOwner(state);
 };
@@ -752,9 +764,9 @@ Imperium.end_turn = function (state) {
         currentPlayerIndex: nextIndex,
         round: newRound,
         phase: "roll",
-        lastDiceValue: null,
+        lastDiceValue: undefined,
         hasRolled: false,
-        pendingEvent: null
+        pendingEvent: undefined
     });
 
     return advanceToNextTurn(state);
@@ -792,7 +804,7 @@ Imperium.handle_gap_year_turn = function (state, choice) {
 
     if (choice === "pay") {
         if (player.money < Imperium.gap_year_buyout) {
-            return { state, escaped: false, diceValue: null };
+            return { state, escaped: false, diceValue: undefined };
         }
 
         const buyoutUpdates = {
@@ -814,7 +826,7 @@ Imperium.handle_gap_year_turn = function (state, choice) {
         return {
             state: resetForNewRoll(stateAfterBuyout),
             escaped: true,
-            diceValue: null
+            diceValue: undefined
         };
     }
 
@@ -877,7 +889,7 @@ Imperium.draw_event_card = function (state) {
 
     const deck = (
         deckIsEmpty
-            ? Imperium.shuffle_array([...Imperium.event_cards])
+            ? Imperium.shuffle_array([...Imperium.event_cards], Math.random)
             : state.eventDeck
     );
     const cardIndex = (
@@ -996,7 +1008,7 @@ Imperium.check_winner = function (state) {
     if (R.length(alivePlayers) <= 1) {
         const declareGameOver = R.mergeLeft({
             phase: "game_over",
-            winner: R.head(alivePlayers) || null
+            winner: R.head(alivePlayers) || undefined
         });
         return declareGameOver(state);
     }
@@ -1016,8 +1028,8 @@ Imperium.check_winner = function (state) {
  * @param {number} offer.moneyFromB Money offered by player B (toIndex).
  * @param {number[]} offer.propertiesFromA Tile IDs offered by player A.
  * @param {number[]} offer.propertiesFromB Tile IDs offered by player B.
- * @returns {Imperium.GameState|null} The new game state after trade,
- *     or null if invalid.
+ * @returns {Imperium.GameState|undefined} The new game state after trade,
+ *     or undefined if invalid.
  * @example
  * const offer = {
  *     moneyFromA: 500,
@@ -1032,21 +1044,21 @@ Imperium.execute_trade = function (state, fromIndex, toIndex, offer) {
     const playerB = state.players[toIndex];
 
     if (!playerA || !playerB) {
-        return null;
+        return undefined;
     }
     if (playerA.isBankrupt || playerB.isBankrupt) {
-        return null;
+        return undefined;
     }
 
     // Validate money
     if (offer.moneyFromA < 0 || offer.moneyFromB < 0) {
-        return null;
+        return undefined;
     }
     if (playerA.money < offer.moneyFromA) {
-        return null;
+        return undefined;
     }
     if (playerB.money < offer.moneyFromB) {
-        return null;
+        return undefined;
     }
 
     // Validate property ownership
@@ -1059,7 +1071,7 @@ Imperium.execute_trade = function (state, fromIndex, toIndex, offer) {
         offer.propertiesFromB
     );
     if (!aOwnsAll || !bOwnsAll) {
-        return null;
+        return undefined;
     }
 
     // Reject trades involving upgraded properties
@@ -1068,7 +1080,7 @@ Imperium.execute_trade = function (state, fromIndex, toIndex, offer) {
         R.concat(offer.propertiesFromA, offer.propertiesFromB)
     );
     if (hasUpgrades) {
-        return null;
+        return undefined;
     }
 
     // Transfer money

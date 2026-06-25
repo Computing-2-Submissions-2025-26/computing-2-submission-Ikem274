@@ -47,7 +47,7 @@ describe("Trading", function () {
     it(
         `Given a trade offer where a player offers properties they do not own,
         When the trade is executed,
-        Then it should fail and return null.`,
+        Then it should fail and return undefined.`,
         function () {
             let state = get_base_state();
             state = R.set(R.lensPath(['players', 0, 'properties']), [2], state);
@@ -61,7 +61,7 @@ describe("Trading", function () {
 
             const new_state = Imperium.execute_trade(state, 0, 1, offer);
 
-            if (new_state !== null) {
+            if (new_state !== undefined) {
                 throw new Error("Invalid trade was allowed to process: " + display_state(new_state));
             }
         }
