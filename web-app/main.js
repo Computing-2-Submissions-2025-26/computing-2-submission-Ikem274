@@ -3,24 +3,31 @@ import Imperium from "./Imperium.js";
 
 // ------------------Tile images----------------------------
 const Tile_Images = {
-    1: "Tiles/Student_Finance.svg", 2: "Tiles/Huxley.svg", 3: "Tiles/Bills_Due.svg",
-    4: "Tiles/Westbound_Station.svg", 5: "Tiles/Blackett.svg", 6: "Tiles/Event_Card1.svg",
-    7: "Tiles/Roderic_Hill.svg", 8: "Tiles/Gap_Year.svg", 9: "Tiles/Science_Museum.svg",
-    10: "Tiles/Sir_Alexander_Fleming.svg", 11: "Tiles/Business_School.svg", 12: "Tiles/Event_Card2.svg",
-    13: "Tiles/Acex_Workshop.svg", 14: "Tiles/Dyson_Building.svg", 15: "Tiles/Student_Union.svg",
-    16: "Tiles/Sherfield_Walkway.svg", 17: "Tiles/Event_Card3.svg", 18: "Tiles/Abdus_Salam_Library.svg",
-    19: "Tiles/Eastbound_Station.svg", 20: "Tiles/Hammersmith.svg", 21: "Tiles/Charing_Cross_Hospital.svg",
-    22: "Tiles/Failed.svg", 23: "Tiles/White_city.svg", 24: "Tiles/History_Museum.svg",
-    25: "Tiles/Queens_Tower.svg", 26: "Tiles/Event_Card4.svg", 27: "Tiles/Rent_Due.svg",
-    28: "Tiles/Royal_Albert_Hall.svg"
+    1: "Tiles/Student_Finance.svg", 2: "Tiles/Huxley.svg",
+    3: "Tiles/Bills_Due.svg", 4: "Tiles/Westbound_Station.svg",
+    5: "Tiles/Blackett.svg", 6: "Tiles/Event_Card1.svg",
+    7: "Tiles/Roderic_Hill.svg", 8: "Tiles/Gap_Year.svg",
+    9: "Tiles/Science_Museum.svg", 10: "Tiles/Sir_Alexander_Fleming.svg",
+    11: "Tiles/Business_School.svg", 12: "Tiles/Event_Card2.svg",
+    13: "Tiles/Acex_Workshop.svg", 14: "Tiles/Dyson_Building.svg",
+    15: "Tiles/Student_Union.svg", 16: "Tiles/Sherfield_Walkway.svg",
+    17: "Tiles/Event_Card3.svg", 18: "Tiles/Abdus_Salam_Library.svg",
+    19: "Tiles/Eastbound_Station.svg", 20: "Tiles/Hammersmith.svg",
+    21: "Tiles/Charing_Cross_Hospital.svg", 22: "Tiles/Failed.svg",
+    23: "Tiles/White_city.svg", 24: "Tiles/History_Museum.svg",
+    25: "Tiles/Queens_Tower.svg", 26: "Tiles/Event_Card4.svg",
+    27: "Tiles/Rent_Due.svg", 28: "Tiles/Royal_Albert_Hall.svg"
 };
 const Tile_Info = {
-    2: "Tile_info/HuxleyRent.svg", 4: "Tile_info/WestboundRent.svg", 5: "Tile_info/BlackettRent.svg",
-    7: "Tile_info/RodericRent.svg", 9: "Tile_info/ScienceRent.svg", 10: "Tile_info/FlemmingRent.svg",
-    11: "Tile_info/BusinessRent.svg", 13: "Tile_info/AcexRent.svg", 14: "Tile_info/DysonRent.svg",
-    16: "Tile_info/SherfieldRent.svg", 18: "Tile_info/AbdusRent.svg", 19: "Tile_info/EastboundRent.svg",
-    20: "Tile_info/HammersmithRent.svg", 21: "Tile_info/CharingRent.svg", 23: "Tile_info/WhiteRent.svg",
-    24: "Tile_info/HistoryRent.svg", 25: "Tile_info/QueensRent.svg", 28: "Tile_info/RoyalRent.svg"
+    2: "Tile_info/HuxleyRent.svg", 4: "Tile_info/WestboundRent.svg",
+    5: "Tile_info/BlackettRent.svg", 7: "Tile_info/RodericRent.svg",
+    9: "Tile_info/ScienceRent.svg", 10: "Tile_info/FlemmingRent.svg",
+    11: "Tile_info/BusinessRent.svg", 13: "Tile_info/AcexRent.svg",
+    14: "Tile_info/DysonRent.svg", 16: "Tile_info/SherfieldRent.svg",
+    18: "Tile_info/AbdusRent.svg", 19: "Tile_info/EastboundRent.svg",
+    20: "Tile_info/HammersmithRent.svg", 21: "Tile_info/CharingRent.svg",
+    23: "Tile_info/WhiteRent.svg", 24: "Tile_info/HistoryRent.svg",
+    25: "Tile_info/QueensRent.svg", 28: "Tile_info/RoyalRent.svg"
 };
 
 /** Human-readable names for upgrade levels. */
@@ -57,7 +64,9 @@ const initHomeScreen = () => {
     const hint = getEl("home-money-hint");
 
     // Display how much money everyone starts with
-    hint.innerHTML = `Each player starts with <strong>£${Imperium.starting_money.toLocaleString()}</strong>`;
+    hint.innerHTML = `Each player starts with <strong>£${
+        Imperium.starting_money.toLocaleString()
+    }</strong>`;
 
     let playerCount = 0;
 
@@ -70,7 +79,8 @@ const initHomeScreen = () => {
 
         btn.addEventListener("click", () => {
             // Highlight the clicked button
-            grid.querySelectorAll(".count-btn").forEach(b => b.classList.remove("active"));
+            grid.querySelectorAll(".count-btn").forEach(
+                b => b.classList.remove("active"));
             btn.classList.add("active");
 
             // Update UI to show the setup fields for 'n' players
@@ -95,7 +105,8 @@ const initHomeScreen = () => {
             const input = getEl(`player-name-${i}`);
             const name = (input && input.value.trim()) || `Player ${i + 1}`;
             const emoji = selectedIcons[i] || Imperium.icon_choices[i].emoji;
-            const colour = Imperium.token_colours[i % Imperium.token_colours.length];
+            const colour = Imperium.token_colours[
+                i % Imperium.token_colours.length];
             return Imperium.create_player(i + 1, name, emoji, colour);
         };
 
@@ -111,7 +122,8 @@ const buildPlayerSetups = (n, container) => {
     container.innerHTML = "";
 
     R.times(i => {
-        const colour = Imperium.token_colours[i % Imperium.token_colours.length];
+        const colour = Imperium.token_colours[
+            i % Imperium.token_colours.length];
 
         const setupDiv = document.createElement("div");
         setupDiv.className = "home-player-setup";
@@ -134,7 +146,8 @@ const buildPlayerSetups = (n, container) => {
         input.placeholder = `Player ${i + 1}`;
         input.maxLength = 20;
         input.id = `player-name-${i}`;
-        input.addEventListener("input", () => validateHome(container, getEl("home-start-btn")));
+        input.addEventListener("input", () => validateHome(
+            container, getEl("home-start-btn")));
 
         // Icon Picker
         const iconLabel = document.createElement("div");
@@ -169,7 +182,8 @@ const buildPlayerSetups = (n, container) => {
 };
 
 /**
- * Updates the icon pickers so you can't choose an emoji someone else already picked.
+ * Updates the icon pickers so you can't choose an emoji
+    someone else already picked.
  */
 const refreshIconPickers = (n) => {
     const takenEmojis = R.values(selectedIcons);
@@ -184,7 +198,8 @@ const refreshIconPickers = (n) => {
 
             if (selectedIcons[i] === emoji) {
                 btn.classList.add("selected");
-            } else if (R.includes(emoji, takenEmojis) && selectedIcons[i] !== emoji) {
+            } else if (R.includes(emoji, takenEmojis) &&
+            selectedIcons[i] !== emoji){
                 btn.classList.add("taken");
             }
         });
@@ -258,13 +273,13 @@ const attachTileClickHandlers = () => {
     }, Imperium.total_tiles);
 };
 
-// ============================================================
+
 // Dynamic Board Elements (Tokens, Icons, Houses)
-// ============================================================
 
 /**
  * Draws the player emojis on whatever tile they are currently standing on.
- * Grouping players by tile to prevent overlap, and styling visitors in the Gap Year differently.
+ * Grouping players by tile to prevent overlap,
+ * and styling visitors in the Gap Year differently.
  * @returns {void}
  */
 const renderTokensOnBoard = () => {
@@ -283,11 +298,13 @@ const renderTokensOnBoard = () => {
 
         const container = document.createElement("div");
 
-        // Special case: make tokens look different if they are just visiting the Gap Year tile
+        // Special case: make tokens look different if
+        // they are just visiting the Gap Year tile
         const isVisitingGapYear = Number(tileId) === Imperium.gap_year_tile &&
             R.all(R.pipe(R.prop("inGapYear"), R.not), playersOnTile);
 
-        container.className = "tile-tokens" + (isVisitingGapYear ? " tile-tokens--visiting" : "");
+        container.className = "tile-tokens" + (
+            isVisitingGapYear ? " tile-tokens--visiting" : "");
 
         // Add each player's emoji token
         R.forEach(player => {
@@ -327,10 +344,12 @@ const renderOwnerIcons = () => {
 };
 
 /**
- * Draws scroll icons (levels 1–2) or a certificate icon (level 3) on upgraded properties.
+ * Draws scroll icons (levels 1–2)S
+ * or a certificate icon (level 3) on upgraded properties.
  */
 const renderUpgradeIndicators = () => {
-    document.querySelectorAll(".tile-upgrade-indicator").forEach(el => el.remove());
+    document.querySelectorAll(".tile-upgrade-indicator").forEach(
+        el => el.remove());
     if (!gameState) return;
 
     const scrollSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"`
@@ -371,7 +390,8 @@ const renderUpgradeIndicators = () => {
 // ============================================================
 
 /**
- * Updates the side panel that lists all players, their money, and their properties.
+ * Updates the side panel that lists all players, their money,
+    and their properties.
  */
 const renderPlayerPanel = () => {
     if (!gameState) return;
@@ -388,7 +408,8 @@ const renderPlayerPanel = () => {
         const isTheirTurn = index === gameState.currentPlayerIndex;
 
         const card = document.createElement("div");
-        card.className = `player-card${isTheirTurn ? " active" : ""}${player.isBankrupt ? " bankrupt" : ""}`;
+        card.className = `player-card${isTheirTurn ? " active" : ""}${
+            player.isBankrupt ? " bankrupt" : ""}`;
         card.id = `player-card-${player.id}`;
         card.style.setProperty("--player-colour", player.colour);
 
@@ -423,7 +444,8 @@ const renderPlayerPanel = () => {
         propsList.className = "pc-props-list";
 
         if (player.properties.length === 0) {
-            propsList.innerHTML = `<span class="pc-props-empty">None yet</span>`;
+            propsList.innerHTML =
+            `<span class="pc-props-empty">None yet</span>`;
         } else {
             // Render a chip for each property they own
             player.properties.forEach(tileId => {
@@ -432,13 +454,19 @@ const renderPlayerPanel = () => {
                 chip.className = "prop-chip";
                 chip.addEventListener("click", () => showPropertyInfo(tileId));
 
-                const group = data && data.colourGroup ? Imperium.get_colour_group(data.colourGroup) : null;
+                const group = data && data.colourGroup
+                ? Imperium.get_colour_group(data.colourGroup) : null;
                 const dotColor = group ? group.colour : "var(--accent)";
 
-                chip.innerHTML = `
-                    <div class="prop-chip-dot" style="background: ${dotColor}"></div>
-                    <span>${data ? data.name : `Tile ${tileId}`}</span>
-                `;
+                const name = data ? data.name : ('Tile ' + tileId);
+
+                chip.innerHTML =
+                    '<div class="prop-chip-dot" style="background: ' +
+                    dotColor +
+                    '"></div>' +
+                    '<span>' +
+                    name +
+                    '</span>';
 
                 // Add a level badge if they've upgraded it
                 const upgradeLevel = gameState.propertyLevels[tileId] || 0;
