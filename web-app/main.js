@@ -3,35 +3,59 @@ import Imperium from "./Imperium.js";
 
 // ------------------Tile images----------------------------
 const Tile_Images = {
-    1: "Tiles/Student_Finance.svg", 2: "Tiles/Huxley.svg",
-    3: "Tiles/Bills_Due.svg", 4: "Tiles/Westbound_Station.svg",
-    5: "Tiles/Blackett.svg", 6: "Tiles/Event_Card1.svg",
-    7: "Tiles/Roderic_Hill.svg", 8: "Tiles/Gap_Year.svg",
-    9: "Tiles/Science_Museum.svg", 10: "Tiles/Sir_Alexander_Fleming.svg",
-    11: "Tiles/Business_School.svg", 12: "Tiles/Event_Card2.svg",
-    13: "Tiles/Acex_Workshop.svg", 14: "Tiles/Dyson_Building.svg",
-    15: "Tiles/Student_Union.svg", 16: "Tiles/Sherfield_Walkway.svg",
-    17: "Tiles/Event_Card3.svg", 18: "Tiles/Abdus_Salam_Library.svg",
-    19: "Tiles/Eastbound_Station.svg", 20: "Tiles/Hammersmith.svg",
-    21: "Tiles/Charing_Cross_Hospital.svg", 22: "Tiles/Failed.svg",
-    23: "Tiles/White_city.svg", 24: "Tiles/History_Museum.svg",
-    25: "Tiles/Queens_Tower.svg", 26: "Tiles/Event_Card4.svg",
-    27: "Tiles/Rent_Due.svg", 28: "Tiles/Royal_Albert_Hall.svg"
+    "1": "Tiles/Student_Finance.svg",
+    "2": "Tiles/Huxley.svg",
+    "3": "Tiles/Bills_Due.svg",
+    "4": "Tiles/Westbound_Station.svg",
+    "5": "Tiles/Blackett.svg",
+    "6": "Tiles/Event_Card1.svg",
+    "7": "Tiles/Roderic_Hill.svg",
+    "8": "Tiles/Gap_Year.svg",
+    "9": "Tiles/Science_Museum.svg",
+    "10": "Tiles/Sir_Alexander_Fleming.svg",
+    "11": "Tiles/Business_School.svg",
+    "12": "Tiles/Event_Card2.svg",
+    "13": "Tiles/Acex_Workshop.svg",
+    "14": "Tiles/Dyson_Building.svg",
+    "15": "Tiles/Student_Union.svg",
+    "16": "Tiles/Sherfield_Walkway.svg",
+    "17": "Tiles/Event_Card3.svg",
+    "18": "Tiles/Abdus_Salam_Library.svg",
+    "19": "Tiles/Eastbound_Station.svg",
+    "20": "Tiles/Hammersmith.svg",
+    "21": "Tiles/Charing_Cross_Hospital.svg",
+    "22": "Tiles/Failed.svg",
+    "23": "Tiles/White_city.svg",
+    "24": "Tiles/History_Museum.svg",
+    "25": "Tiles/Queens_Tower.svg",
+    "26": "Tiles/Event_Card4.svg",
+    "27": "Tiles/Rent_Due.svg",
+    "28": "Tiles/Royal_Albert_Hall.svg"
 };
 const Tile_Info = {
-    2: "Tile_info/HuxleyRent.svg", 4: "Tile_info/WestboundRent.svg",
-    5: "Tile_info/BlackettRent.svg", 7: "Tile_info/RodericRent.svg",
-    9: "Tile_info/ScienceRent.svg", 10: "Tile_info/FlemmingRent.svg",
-    11: "Tile_info/BusinessRent.svg", 13: "Tile_info/AcexRent.svg",
-    14: "Tile_info/DysonRent.svg", 16: "Tile_info/SherfieldRent.svg",
-    18: "Tile_info/AbdusRent.svg", 19: "Tile_info/EastboundRent.svg",
-    20: "Tile_info/HammersmithRent.svg", 21: "Tile_info/CharingRent.svg",
-    23: "Tile_info/WhiteRent.svg", 24: "Tile_info/HistoryRent.svg",
-    25: "Tile_info/QueensRent.svg", 28: "Tile_info/RoyalRent.svg"
+    "2": "Tile_info/HuxleyRent.svg",
+    "4": "Tile_info/WestboundRent.svg",
+    "5": "Tile_info/BlackettRent.svg",
+    "7": "Tile_info/RodericRent.svg",
+    "9": "Tile_info/ScienceRent.svg",
+    "10": "Tile_info/FlemmingRent.svg",
+    "11": "Tile_info/BusinessRent.svg",
+    "13": "Tile_info/AcexRent.svg",
+    "14": "Tile_info/DysonRent.svg",
+    "16": "Tile_info/SherfieldRent.svg",
+    "18": "Tile_info/AbdusRent.svg",
+    "19": "Tile_info/EastboundRent.svg",
+    "20": "Tile_info/HammersmithRent.svg",
+    "21": "Tile_info/CharingRent.svg",
+    "23": "Tile_info/WhiteRent.svg",
+    "24": "Tile_info/HistoryRent.svg",
+    "25": "Tile_info/QueensRent.svg",
+    "28": "Tile_info/RoyalRent.svg"
 };
 
 /** Human-readable names for upgrade levels. */
-const Degree_Names = { 1: "Bachelor's Degree", 2: "Master's Degree", 3: "PhD" };
+const Degree_Names = {"1": "Bachelor's Degree", "2":
+    "Master's Degree", "3": "PhD"};
 
 
 // ------------------State-------------------------------------
@@ -56,7 +80,7 @@ const getActivePlayers = R.filter(R.pipe(R.prop("isBankrupt"), R.not));
  * Initialises the main home screen where players select how many are playing,
  * their names, and their icons.
  */
-const initHomeScreen = () => {
+const initHomeScreen = function () {
     const grid = getEl("player-count-grid");
     const label = getEl("home-selected-label");
     const namesContainer = getEl("home-names");
@@ -71,16 +95,17 @@ const initHomeScreen = () => {
     let playerCount = 0;
 
     // Create buttons for 2, 3, or 4 players
-    const createPlayerCountButtons = R.forEach(n => {
+    const createPlayerCountButtons = R.forEach(function (n) {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "count-btn";
         btn.textContent = n;
 
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", function () {
             // Highlight the clicked button
             grid.querySelectorAll(".count-btn").forEach(
-                b => b.classList.remove("active"));
+                (b) => b.classList.remove("active")
+            );
             btn.classList.add("active");
 
             // Update UI to show the setup fields for 'n' players
@@ -97,16 +122,19 @@ const initHomeScreen = () => {
     createPlayerCountButtons([2, 3, 4]);
 
     // Handle clicking the big "Start Game" button
-    startBtn.addEventListener("click", () => {
-        if (playerCount < 2) return;
+    startBtn.addEventListener("click", function () {
+        if (playerCount < 2) {
+            return;
+        }
 
         // Build the player objects based on what was typed/selected
-        const createSetupPlayer = i => {
+        const createSetupPlayer = function (i) {
             const input = getEl(`player-name-${i}`);
             const name = (input && input.value.trim()) || `Player ${i + 1}`;
             const emoji = selectedIcons[i] || Imperium.icon_choices[i].emoji;
             const colour = Imperium.token_colours[
-                i % Imperium.token_colours.length];
+                i % Imperium.token_colours.length
+            ];
             return Imperium.create_player(i + 1, name, emoji, colour);
         };
 
@@ -118,12 +146,13 @@ const initHomeScreen = () => {
 /**
  * Builds the name input and icon picker for each player.
  */
-const buildPlayerSetups = (n, container) => {
+const buildPlayerSetups = function (n, container) {
     container.innerHTML = "";
 
-    R.times(i => {
+    R.times(function (i) {
         const colour = Imperium.token_colours[
-            i % Imperium.token_colours.length];
+            i % Imperium.token_colours.length
+        ];
 
         const setupDiv = document.createElement("div");
         setupDiv.className = "home-player-setup";
@@ -147,7 +176,9 @@ const buildPlayerSetups = (n, container) => {
         input.maxLength = 20;
         input.id = `player-name-${i}`;
         input.addEventListener("input", () => validateHome(
-            container, getEl("home-start-btn")));
+            container,
+            getEl("home-start-btn")
+        ));
 
         // Icon Picker
         const iconLabel = document.createElement("div");
@@ -158,14 +189,14 @@ const buildPlayerSetups = (n, container) => {
         picker.className = "icon-picker";
         picker.id = `icon-picker-${i}`;
 
-        R.forEach(({ emoji }) => {
+        R.forEach(function ({emoji}) {
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "icon-btn";
             btn.textContent = emoji;
             btn.dataset.emoji = emoji;
 
-            btn.addEventListener("click", () => {
+            btn.addEventListener("click", function () {
                 selectedIcons[i] = emoji;
                 refreshIconPickers(n);
                 validateHome(container, getEl("home-start-btn"));
@@ -185,14 +216,16 @@ const buildPlayerSetups = (n, container) => {
  * Updates the icon pickers so you can't choose an emoji
     someone else already picked.
  */
-const refreshIconPickers = (n) => {
+const refreshIconPickers = function (n) {
     const takenEmojis = R.values(selectedIcons);
 
-    R.times(i => {
+    R.times(function (i) {
         const picker = getEl(`icon-picker-${i}`);
-        if (!picker) return;
+        if (!picker) {
+            return;
+        }
 
-        picker.querySelectorAll(".icon-btn").forEach(btn => {
+        picker.querySelectorAll(".icon-btn").forEach(function (btn) {
             const emoji = btn.dataset.emoji;
             btn.classList.remove("selected", "taken");
 
@@ -209,7 +242,7 @@ const refreshIconPickers = (n) => {
 /**
  * Enables or disables the Start button depending on if everyone is ready.
  */
-const validateHome = (container, btn) => {
+const validateHome = function (container, btn) {
     const inputs = container.querySelectorAll(".home-name-input");
     const allHaveIcons = Object.keys(selectedIcons).length === inputs.length;
     btn.disabled = inputs.length === 0 || !allHaveIcons;
@@ -222,7 +255,7 @@ const validateHome = (container, btn) => {
  * Transitions from the setup screen to the actual game board.
  * @param {Imperium.Player[]} players
  */
-const launchGame = (players) => {
+const launchGame = function (players) {
     // 1. Create the engine state
     gameState = Imperium.create_game_state(players);
 
@@ -249,8 +282,8 @@ const launchGame = (players) => {
  * Loads the background images onto the game board tiles.
  * @returns {void}
  */
-const loadTileImages = () => {
-    R.forEach(([id, imgPath]) => {
+const loadTileImages = function () {
+    R.forEach(function ([id, imgPath]) {
         const el = getEl(`tile-${id}`);
         if (el && imgPath) {
             el.style.backgroundImage = `url('./assets/${imgPath}')`;
@@ -261,14 +294,16 @@ const loadTileImages = () => {
 /**
  * Makes every tile clickable so players can inspect property cards.
  */
-const attachTileClickHandlers = () => {
-    R.times(i => {
+const attachTileClickHandlers = function () {
+    R.times(function (i) {
         const tileId = i + 1;
         const el = getEl(`tile-${tileId}`);
         const tileData = Imperium.get_tile_data(tileId);
         if (el && tileData && tileData.type === "property") {
             el.classList.add("interactable-tile");
-            el.addEventListener("click", () => showPropertyInfo(tileId));
+            el.addEventListener("click", function () {
+                showPropertyInfo(tileId);
+            });
         }
     }, Imperium.total_tiles);
 };
@@ -282,19 +317,25 @@ const attachTileClickHandlers = () => {
  * and styling visitors in the Gap Year differently.
  * @returns {void}
  */
-const renderTokensOnBoard = () => {
+const renderTokensOnBoard = function () {
     // Clear old tokens
-    document.querySelectorAll(".tile-tokens").forEach(el => el.remove());
-    if (!gameState) return;
+    document.querySelectorAll(".tile-tokens").forEach(function (el) {
+        el.remove();
+    });
+    if (!gameState) {
+        return;
+    }
 
     // Group active players by which tile position they are on
     const activePlayers = getActivePlayers(gameState.players);
     const playersByTile = R.groupBy(R.prop("position"), activePlayers);
 
     // Render each group of players onto their tile
-    R.forEachObjIndexed((playersOnTile, tileId) => {
+    R.forEachObjIndexed(function (playersOnTile, tileId) {
         const tileEl = getEl(`tile-${tileId}`);
-        if (!tileEl) return;
+        if (!tileEl) {
+            return;
+        }
 
         const container = document.createElement("div");
 
@@ -307,7 +348,7 @@ const renderTokensOnBoard = () => {
             isVisitingGapYear ? " tile-tokens--visiting" : "");
 
         // Add each player's emoji token
-        R.forEach(player => {
+        R.forEach(function (player) {
             const token = document.createElement("div");
             token.className = "tile-token";
             token.style.backgroundColor = player.colour;
@@ -323,16 +364,22 @@ const renderTokensOnBoard = () => {
 /**
  * Draws a small coloured badge on tiles to show who owns them.
  */
-const renderOwnerIcons = () => {
-    document.querySelectorAll(".tile-owner-icon").forEach(el => el.remove());
-    if (!gameState) return;
+const renderOwnerIcons = function () {
+    document.querySelectorAll(".tile-owner-icon").forEach(function (el) {
+        el.remove();
+    });
+    if (!gameState) {
+        return;
+    }
 
     const activePlayers = getActivePlayers(gameState.players);
 
-    R.forEach(player => {
-        R.forEach(tileId => {
+    R.forEach(function (player) {
+        R.forEach(function (tileId) {
             const tileEl = getEl(`tile-${tileId}`);
-            if (!tileEl) return;
+            if (!tileEl) {
+                return;
+            }
 
             const icon = document.createElement("div");
             icon.className = "tile-owner-icon";
@@ -347,31 +394,45 @@ const renderOwnerIcons = () => {
  * Draws scroll icons (levels 1–2)S
  * or a certificate icon (level 3) on upgraded properties.
  */
-const renderUpgradeIndicators = () => {
+const renderUpgradeIndicators = function () {
     document.querySelectorAll(".tile-upgrade-indicator").forEach(
-        el => el.remove());
-    if (!gameState) return;
+        function (el) {
+            el.remove();
+        });
+    if (!gameState) {
+        return;
+    }
 
-    const scrollSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"`
-        + ` stroke="#d4a017" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
-        + ` style="margin:0 1px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4));">`
-        + `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>`
+    const scrollSvg = `<svg width="14" height="14"
+    viewBox="0 0 24 24" fill="none"`
+        + ` stroke="#d4a017" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"`
+        + ` style="margin:0 1px; filter: drop-shadow
+        (0 1px 1px rgba(0,0,0,0.4));">`
+        + `<path d="M14 2H6a2 2 0 0 0-2 2v16a2
+        2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>`
         + `<polyline points="14 2 14 8 20 8"/>`
         + `<line x1="16" y1="13" x2="8" y2="13"/>`
         + `<line x1="16" y1="17" x2="8" y2="17"/>`
         + `<polyline points="10 9 9 9 8 9"/></svg>`;
 
-    const certSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"`
-        + ` stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`
+    const certSvg = `<svg width="18" height="18"
+    viewBox="0 0 24 24" fill="none"`
+        + ` stroke="#e74c3c" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round"`
         + ` style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));">`
         + `<circle cx="12" cy="8" r="6"/>`
         + `<path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>`;
 
-    R.forEachObjIndexed((level, tileId) => {
-        if (level <= 0) return;
+    R.forEachObjIndexed(function (level, tileId) {
+        if (level <= 0) {
+            return;
+        }
 
         const tileEl = getEl(`tile-${tileId}`);
-        if (!tileEl) return;
+        if (!tileEl) {
+            return;
+        }
 
         const indicator = document.createElement("div");
         indicator.className = "tile-upgrade-indicator";
@@ -385,16 +446,18 @@ const renderUpgradeIndicators = () => {
     }, gameState.propertyLevels);
 };
 
-// ============================================================
+
 // Side Panel (Player Stats)
-// ============================================================
+
 
 /**
  * Updates the side panel that lists all players, their money,
     and their properties.
  */
-const renderPlayerPanel = () => {
-    if (!gameState) return;
+const renderPlayerPanel = function () {
+    if (!gameState) {
+        return;
+    }
 
     const panelPlayers = getEl("panel-players");
     const panelRound = getEl("panel-round");
@@ -404,15 +467,23 @@ const renderPlayerPanel = () => {
 
     const forEachIndexed = R.addIndex(R.forEach);
 
-    forEachIndexed((player, index) => {
+    forEachIndexed(function (player, index) {
         const isTheirTurn = index === gameState.currentPlayerIndex;
 
         const card = document.createElement("div");
-        card.className = `player-card${isTheirTurn ? " active" : ""}${
-            player.isBankrupt ? " bankrupt" : ""}`;
-        card.id = `player-card-${player.id}`;
-        card.style.setProperty("--player-colour", player.colour);
 
+        const activeClass = (isTheirTurn ? " active" : "");
+        const bankruptClass = (
+            player.isBankrupt ?
+                " bankrupt" :
+                ""
+        );
+
+        card.className = "player-card" + activeClass + bankruptClass;
+
+        card.id = "player-card-" + player.id;
+
+        card.style.setProperty("--player-colour", player.colour);
         // Header: Emoji, Name, and "Your Turn" badge
         const header = document.createElement("div");
         header.className = "pc-header";
@@ -448,31 +519,42 @@ const renderPlayerPanel = () => {
             `<span class="pc-props-empty">None yet</span>`;
         } else {
             // Render a chip for each property they own
-            player.properties.forEach(tileId => {
+            player.properties.forEach(function (tileId) {
                 const data = Imperium.get_tile_data(tileId);
                 const chip = document.createElement("div");
                 chip.className = "prop-chip";
                 chip.addEventListener("click", () => showPropertyInfo(tileId));
 
-                const group = data && data.colourGroup
-                ? Imperium.get_colour_group(data.colourGroup) : null;
-                const dotColor = group ? group.colour : "var(--accent)";
+                const group = (
+                    (data && data.colourGroup) ?
+                        Imperium.get_colour_group(data.colourGroup): null
+                );
 
-                const name = data ? data.name : ('Tile ' + tileId);
+                const dotColor = (
+                    group ? group.colour: "var(--accent)"
+                );
+
+                const name = (
+                    data ?
+                        data.name :
+                        ("Tile " + tileId)
+                );
 
                 chip.innerHTML =
-                    '<div class="prop-chip-dot" style="background: ' +
+                    "<div class=\"prop-chip-dot\" style=\"background: " +
                     dotColor +
-                    '"></div>' +
-                    '<span>' +
+                    "\"></div>" +
+                    "<span>" +
                     name +
-                    '</span>';
+                    "</span>";
 
                 // Add a level badge if they've upgraded it
                 const upgradeLevel = gameState.propertyLevels[tileId] || 0;
                 if (upgradeLevel > 0) {
-                    const degreeLabel = Degree_Names[upgradeLevel] || `Level ${upgradeLevel}`;
-                    chip.innerHTML += `<div class="prop-chip-level">${degreeLabel}</div>`;
+                    const degreeLabel = Degree_Names[upgradeLevel] || `Level ${
+                        upgradeLevel}`;
+                    chip.innerHTML += `<div class="prop-chip-level">${
+                        degreeLabel}</div>`;
                 }
 
                 propsList.appendChild(chip);
@@ -492,8 +574,10 @@ const renderPlayerPanel = () => {
  * Determines which buttons (Roll, Buy, Upgrade, End Turn, etc.)
  * should be visible to the player at this exact moment.
  */
-const updateActionButtons = () => {
-    if (!gameState) return;
+const updateActionButtons = function() {
+    if (!gameState) {
+        return;
+    }
 
     const player = Imperium.current_player(gameState);
 
@@ -508,10 +592,17 @@ const updateActionButtons = () => {
     const btnTrade = getEl("btn-trade");
 
     // Hide everything initially
-    const allButtons = [btnRoll, btnBuy, btnUpgrade, btnSellUpgrade, btnEnd, btnDeclareBankruptcy, btnPayGapYear, btnRollGapYear, btnTrade];
-    R.forEach(b => b && b.classList.add("hidden"), allButtons);
+    const allButtons = [btnRoll, btnBuy, btnUpgrade, btnSellUpgrade, btnEnd,
+        btnDeclareBankruptcy, btnPayGapYear, btnRollGapYear, btnTrade];
+    R.forEach(function (b) {
+        if (b) {
+            b.classList.add("hidden");
+        }
+    }, allButtons);
 
-    if (gameState.phase === "game_over" || player.isBankrupt) return;
+    if (gameState.phase === "game_over" || player.isBankrupt) {
+        return;
+    }
 
     // --- GAP YEAR LOGIC ---
     if (player.inGapYear) {
@@ -547,7 +638,8 @@ const updateActionButtons = () => {
             } else if (owner && owner.id === player.id) {
                 // They own it, check if they can upgrade or sell upgrades
                 const ownerIndex = gameState.players.indexOf(owner);
-                const ownsFullSet = Imperium.owns_full_set(gameState, ownerIndex, tile.colourGroup);
+                const ownsFullSet = Imperium.owns_full_set(gameState,
+                    ownerIndex, tile.colourGroup);
                 const level = gameState.propertyLevels[player.position] || 0;
 
                 if (ownsFullSet && tile.upgradeCost && level < 3) {
@@ -557,7 +649,8 @@ const updateActionButtons = () => {
 
                 if (level > 0 && tile.sellPrice) {
                     btnSellUpgrade.classList.remove("hidden");
-                    btnSellUpgrade.textContent = `Downgrade — +£${tile.sellPrice}`;
+                    btnSellUpgrade.textContent = `Downgrade — +£${
+                        tile.sellPrice}`;
                 }
             }
         }
@@ -575,23 +668,21 @@ const updateActionButtons = () => {
 // Animations
 // ============================================================
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 /**
  * Rolls the dice rapidly before landing on the final value.
  * @param {number} finalValue
  * @returns {Promise<void>}
  */
-const animateDice = (finalValue) => {
-    return new Promise(resolve => {
+const animateDice = function (finalValue) {
+    return new Promise(function (resolve) {
         const die = getEl("die-face");
         die.textContent = "?";
         die.classList.add("rolling");
 
         let flicks = 0;
-        const interval = setInterval(() => {
+        const interval = setInterval(function () {
             die.textContent = Math.floor(Math.random() * 6) + 1;
-            flicks++;
+            flicks = flicks + 1;
             if (flicks >= 10) {
                 clearInterval(interval);
                 die.textContent = finalValue;
@@ -607,16 +698,28 @@ const animateDice = (finalValue) => {
  * @param {number} steps
  * @returns {Promise<void>}
  */
-const animateMovement = async (steps) => {
-    const player = Imperium.current_player(gameState);
+function animateMovement(steps) {
+    let player = Imperium.current_player(gameState);
     let tempPos = player.position;
 
-    for (let i = 0; i < steps; i++) {
-        tempPos = tempPos + 1;
-        if (tempPos > Imperium.total_tiles) tempPos = 1;
+    let i;
 
-        // Temporarily adjust position in state purely for the visual re-render
-        const updatePosition = R.over(R.lensProp("position"), R.always(tempPos));
+    function stepLoop() {
+        if (i >= steps) {
+            return;
+        }
+
+        tempPos = tempPos + 1;
+
+        if (tempPos > Imperium.total_tiles) {
+            tempPos = 1;
+        }
+
+        let updatePosition = R.over(
+            R.lensProp("position"),
+            R.always(tempPos)
+        );
+
         gameState = R.over(
             R.lensProp("players"),
             R.adjust(gameState.currentPlayerIndex, updatePosition),
@@ -624,9 +727,15 @@ const animateMovement = async (steps) => {
         );
 
         renderTokensOnBoard();
-        await sleep(200);
+
+        i = i + 1;
+
+        setTimeout(stepLoop, 200);
     }
-};
+
+    i = 0;
+    stepLoop();
+}
 
 // ------------------ Landing Mechanics ------------------
 
@@ -635,39 +744,40 @@ const animateMovement = async (steps) => {
  * It passes the game state into the Engine (Imperium.js), gets the new state,
  * and figures out what message/UI to show the user.
  */
-const handleLandingUI = () => {
-    const { state, action } = Imperium.handle_landing(gameState);
+const handleLandingUI = function () {
+    const {state, action} = Imperium.handle_landing(gameState);
     gameState = state;
 
     // React to whatever the engine said happened
     switch (action.type) {
-        case "property_unowned":
-            showPropertyCard(action.tileId, false);
-            break;
-        case "property_owned_self":
-            showPropertyCard(action.tileId, true);
-            break;
-        case "property_owned_other":
-            showToast(`Paid £${action.rentAmount} rent to ${action.owner.name}`, "lose");
-            break;
-        case "event":
-            showEventCard(action.card);
-            break;
-        case "tax":
-            showToast(`${action.tileName}: Lost £${action.amount}`, "lose");
-            break;
-        case "go":
-            showToast("Landed on Student Finance! Collected £200", "gain");
-            break;
-        case "go_to_gap_year":
-            showToast("You Fail! Go to Gap Year!", "lose");
-            break;
-        case "gap_year_visiting":
-            showToast("Just visiting Gap Year", "info");
-            break;
-        case "free_parking":
-            showToast("Free Parking — relax!", "info");
-            break;
+    case "property_unowned":
+        showPropertyCard(action.tileId, false);
+        break;
+    case "property_owned_self":
+        showPropertyCard(action.tileId, true);
+        break;
+    case "property_owned_other":
+        showToast(`Paid £${action.rentAmount} rent
+            to ${action.owner.name}`, "lose");
+        break;
+    case "event":
+        showEventCard(action.card);
+        break;
+    case "tax":
+        showToast(`${action.tileName}: Lost £${action.amount}`, "lose");
+        break;
+    case "go":
+        showToast("Landed on Student Finance! Collected £200", "gain");
+        break;
+    case "go_to_gap_year":
+        showToast("You Fail! Go to Gap Year!", "lose");
+        break;
+    case "gap_year_visiting":
+        showToast("Just visiting Gap Year", "info");
+        break;
+    case "free_parking":
+        showToast("Free Parking — relax!", "info");
+        break;
     }
 
     // After resolving the tile, check if anyone won
@@ -691,7 +801,7 @@ const handleLandingUI = () => {
  * @param {string} html
  * @param {boolean} transparent
  */
-const openModal = (html, transparent = false) => {
+const openModal = function (html, transparent = false) {
     const overlay = getEl("modal-overlay");
     const content = getEl("modal-content");
     content.innerHTML = html;
@@ -705,7 +815,7 @@ const openModal = (html, transparent = false) => {
     overlay.classList.remove("hidden");
 };
 
-const closeModal = () => {
+const closeModal = function () {
     getEl("modal-overlay").classList.add("hidden");
 };
 
@@ -714,31 +824,47 @@ const closeModal = () => {
  * @param {number} tileId
  * @param {boolean} infoOnly
  */
-const showPropertyCard = (tileId, infoOnly = false) => {
+const showPropertyCard = function (tileId, infoOnly = false) {
     const tile = Imperium.get_tile_data(tileId);
-    if (!tile) return;
+    if (!tile) {
+        return;
+    }
 
     const owner = Imperium.find_owner(gameState, tileId);
     const player = Imperium.current_player(gameState);
     const playerIndex = gameState.currentPlayerIndex;
 
     let canBuy = false;
-    if (!infoOnly && !owner && Imperium.is_property(tileId) && player.money >= tile.price) {
+    if (!infoOnly && !owner && Imperium.is_property(tileId) &&
+    player.money >= tile.price) {
         canBuy = true;
     }
 
     // Check if the current player owns this and can upgrade/downgrade
-    const ownerIndex = owner ? gameState.players.indexOf(owner) : -1;
+    const ownerIndex = (
+    owner ?
+        gameState.players.indexOf(owner) :
+        -1
+    );
     const isOwnerCurrentPlayer = ownerIndex === playerIndex;
+
     const level = gameState.propertyLevels[tileId] || 0;
-    const ownsSet = isOwnerCurrentPlayer
-        ? Imperium.owns_full_set(gameState, ownerIndex, tile.colourGroup)
-        : false;
+
+    const ownsSet = (
+        isOwnerCurrentPlayer ?
+            Imperium.owns_full_set(
+                gameState,
+                ownerIndex,
+                tile.colourGroup
+            ) :
+            false
+    );
 
     let canUpgrade = false;
     let canDowngrade = false;
     if (isOwnerCurrentPlayer && gameState.phase === "landed") {
-        if (ownsSet && tile.upgradeCost && level < 3 && player.money >= tile.upgradeCost) {
+        if (ownsSet && tile.upgradeCost && level < 3 &&
+            player.money >= tile.upgradeCost) {
             canUpgrade = true;
         }
         if (level > 0 && tile.sellPrice) {
@@ -747,27 +873,49 @@ const showPropertyCard = (tileId, infoOnly = false) => {
     }
 
     // Build the SVG info card view
-    let imageContent = Tile_Info[tileId]
-        ? `<img src="./assets/${Tile_Info[tileId]}" alt="${tile.name}" class="prop-card-img" />`
-        : `<div class="prop-card-fallback">No Info Card Available</div>`;
+    let imageContent = (
+        Tile_Info[tileId] ?
+            "<img src=\"./assets/" +
+            Tile_Info[tileId] +
+            "\" alt=\"" +
+            tile.name +
+            "\" class=\"prop-card-img\" />" :
+            "<div class=\"prop-card-fallback\">No Info Card Available</div>"
+    );
 
     let buttonsHtml = "";
     if (canBuy) {
-        buttonsHtml += `<button class="action-btn action-btn--buy" id="modal-buy" style="margin-top: 10px; min-width: 120px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Buy — £${tile.price}</button>`;
+        buttonsHtml += `<button class="action-btn
+        action-btn--buy"id="modal-buy"
+        style="margin-top: 10px; min-width: 120px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Buy — £${
+            tile.price}</button>`;
     }
     if (canUpgrade) {
-        buttonsHtml += `<button class="action-btn action-btn--buy" id="modal-upgrade" style="margin-top: 10px; min-width: 120px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Upgrade — £${tile.upgradeCost}</button>`;
+        buttonsHtml += `<button class="action-btn
+        action-btn--buy"id="modal-upgrade"
+        style="margin-top: 10px; min-width: 120px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Upgrade — £${
+            tile.upgradeCost}</button>`;
     }
     if (canDowngrade) {
-        buttonsHtml += `<button class="action-btn action-btn--buy" id="modal-downgrade" style="margin-top: 10px; min-width: 120px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Downgrade +£${tile.sellPrice}</button>`;
+        buttonsHtml += `<button class="action-btn
+        action-btn--buy" id="modal-downgrade"
+        style="margin-top: 10px; min-width: 120px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Downgrade +£${
+            tile.sellPrice}</button>`;
     }
-    buttonsHtml += `<button class="action-btn action-btn--end" id="modal-close" style="margin-top: 10px; min-width: 120px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Close</button>`;
+    buttonsHtml += `<button class="action-btn
+    action-btn--end" id="modal-close"
+    style="margin-top: 10px; min-width: 120px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Close</button>`;
 
     let html = `
     <div class="prop-card-image-container">
         ${imageContent}
     </div>
-    <div style="text-align: center; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+    <div style="text-align: center; display: flex;
+    justify-content: center; gap: 10px; flex-wrap: wrap;">
         ${buttonsHtml}
     </div>`;
 
@@ -777,7 +925,7 @@ const showPropertyCard = (tileId, infoOnly = false) => {
     getEl("modal-close").addEventListener("click", closeModal);
 
     if (canBuy) {
-        getEl("modal-buy").addEventListener("click", () => {
+        getEl("modal-buy").addEventListener("click", function () {
             gameState = Imperium.buy_property(gameState);
             showToast(`Bought ${tile.name} for £${tile.price}!`, "gain");
             closeModal();
@@ -787,12 +935,13 @@ const showPropertyCard = (tileId, infoOnly = false) => {
         });
     }
     if (canUpgrade) {
-        getEl("modal-upgrade").addEventListener("click", () => {
+        getEl("modal-upgrade").addEventListener("click", function () {
             const levelBefore = gameState.propertyLevels[tileId] || 0;
             gameState = Imperium.upgrade_property(gameState, tileId);
             const levelAfter = gameState.propertyLevels[tileId] || 0;
             if (levelAfter > levelBefore) {
-                const degreeName = Degree_Names[levelAfter] || `Level ${levelAfter}`;
+                const degreeName = Degree_Names[
+                    levelAfter] || `Level ${levelAfter}`;
                 showToast(`Upgraded ${tile.name} to ${degreeName}!`, "gain");
             }
             closeModal();
@@ -802,12 +951,14 @@ const showPropertyCard = (tileId, infoOnly = false) => {
         });
     }
     if (canDowngrade) {
-        getEl("modal-downgrade").addEventListener("click", () => {
+        getEl("modal-downgrade").addEventListener("click", function () {
             gameState = Imperium.sell_property_upgrade(gameState, tileId);
             const levelAfter = gameState.propertyLevels[tileId] || 0;
-            const degreeName = levelAfter > 0
-                ? Degree_Names[levelAfter] || `Level ${levelAfter}`
-                : "no degree";
+            const degreeName = (
+                levelAfter > 0 ?
+                    (Degree_Names[levelAfter] || ("Level " + levelAfter)) :
+                    "no degree"
+            );
             showToast(`Downgraded ${tile.name} to ${degreeName}!`, "gain");
             closeModal();
             renderPlayerPanel();
@@ -818,44 +969,62 @@ const showPropertyCard = (tileId, infoOnly = false) => {
 };
 
 /** Quick wrapper to show property info when clicked on the board. */
-const showPropertyInfo = (tileId) => {
+const showPropertyInfo = function (tileId) {
     const tile = Imperium.get_tile_data(tileId);
     // Only show for buyable property tiles
-    if (!tile || tile.type !== "property") return;
-
+    if (!tile || tile.type !== "property") {
+        return;
+    }
     showPropertyCard(tileId, true);
 };
 
 /** Shows a fun modal when an Event Card is drawn. */
-const showEventCard = (card) => {
+const showEventCard = function (card) {
     const effect = card.effect;
     const isGain = effect.type === "gain" || effect.type === "move";
 
     let effectText = "";
-    if (effect.type === "gain") effectText = `+£${effect.amount}`;
-    else if (effect.type === "lose") effectText = `-£${effect.amount}`;
+    if (effect.type === "gain") {
+        effectText = `+£${effect.amount}`;
+    }
+    else if (effect.type === "lose") {
+        effectText = `-£${effect.amount}`;
+    }
     else {
-        const tileName = Imperium.get_tile_data(effect.tileId)?.name || `Tile ${effect.tileId}`;
+        const tileName = Imperium.get_tile_data(effect.tileId)?.name ||
+        `Tile ${effect.tileId}`;
         effectText = `Move to ${tileName}`;
     }
 
-    const html = `
-        <div class="event-card-modal">
-            <div class="event-card-top">
-                <div class="event-card-subtitle">Event Card</div>
-                <h3>${card.title}</h3>
-            </div>
-            <div class="event-card-body">
-                <p>${card.description}</p>
-                <div class="event-card-effect ${isGain ? "gain" : "lose"}">${effectText}</div>
-                <button class="action-btn action-btn--end" id="modal-close" style="width:100%">OK</button>
-            </div>
-        </div>
-    `;
+    let gainClass = (
+        isGain ?
+            "gain" :
+            "lose"
+    );
+
+    let  html =
+        "<div class=\"event-card-modal\">" +
+            "<div class=\"event-card-top\">" +
+                "<div class=\"event-card-subtitle\">Event Card</div>" +
+                "<h3>" + card.title + "</h3>" +
+            "</div>" +
+
+            "<div class=\"event-card-body\">" +
+                "<p>" + card.description + "</p>" +
+
+                "<div class=\"event-card-effect " + gainClass + "\">" +
+                    effectText +
+                "</div>" +
+
+                "<button class=\"action-btn action-btn--end\" " +
+                "id=\"modal-close\" style=\"width:100%\">OK</button>" +
+
+            "</div>" +
+        "</div>";
 
     openModal(html);
 
-    getEl("modal-close").addEventListener("click", () => {
+    getEl("modal-close").addEventListener("click", function () {
         closeModal();
         if (effect.type === "move") {
             // Re-render and trigger a landing effect since they were moved
@@ -877,7 +1046,7 @@ const showEventCard = (card) => {
  * @param {string} message
  * @param {string} [type="info"]
  */
-const showToast = (message, type = "info") => {
+const showToast = function (message, type = "info") {
     const container = getEl("toast-container");
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
@@ -889,44 +1058,55 @@ const showToast = (message, type = "info") => {
 
 // --------------- Wiring Action Buttons to Logic ---------------
 
-const wireButtons = () => {
+const wireButtons = function () {
 
     // Roll Dice
-    getEl("btn-roll").addEventListener("click", async () => {
-        getEl("btn-roll").disabled = true;
+    getEl("btn-roll").addEventListener("click", function () {
+    getEl("btn-roll").disabled = true;
 
         // 1. Roll in state
         gameState = Imperium.roll_dice(gameState);
-        const rolledValue = gameState.lastDiceValue;
+        let rolledValue = gameState.lastDiceValue;
 
-        // 2. Play dice animation
-        await animateDice(rolledValue);
+        animateDice(rolledValue).then(function () {
 
-        // 3. Play hopping animation
-        const playerBefore = Imperium.current_player(gameState);
-        await animateMovement(rolledValue);
+            // 2. Play hopping animation
+            let playerBefore = Imperium.current_player(gameState);
 
-        // 4. Do the real move in state (calculates GO money)
-        const revertPosition = R.over(R.lensProp("position"), R.always(playerBefore.position));
-        gameState = R.over(
-            R.lensProp("players"),
-            R.adjust(gameState.currentPlayerIndex, revertPosition),
-            gameState
-        );
-        gameState = Imperium.move_player(gameState, rolledValue);
+            animateMovement(rolledValue).then(function () {
 
-        renderTokensOnBoard();
-        renderPlayerPanel();
-        handleLandingUI();
+                // 3. Revert position before final state move
+                let revertPosition = R.over(
+                    R.lensProp("position"),
+                    R.always(playerBefore.position)
+                );
+
+                gameState = R.over(
+                    R.lensProp("players"),
+                    R.adjust(gameState.currentPlayerIndex, revertPosition),
+                    gameState
+                );
+
+                // 4. Real move (game logic)
+                gameState = Imperium.move_player(gameState, rolledValue);
+
+                renderTokensOnBoard();
+                renderPlayerPanel();
+                handleLandingUI();
+
+                getEl("btn-roll").disabled = false;
+            });
+        });
     });
-
     // Buy Property
-    getEl("btn-buy").addEventListener("click", () => {
+    getEl("btn-buy").addEventListener("click", function () {
         const player = Imperium.current_player(gameState);
         const tile = Imperium.get_tile_data(player.position);
 
         gameState = Imperium.buy_property(gameState);
-        if (tile) showToast(`Bought ${tile.name} for £${tile.price}!`, "gain");
+        if (tile) {
+            showToast(`Bought ${tile.name} for £${tile.price}!`, "gain");
+        }
 
         renderPlayerPanel();
         renderOwnerIcons();
@@ -934,17 +1114,20 @@ const wireButtons = () => {
     });
 
     // Upgrade Degree
-    getEl("btn-upgrade").addEventListener("click", () => {
+    getEl("btn-upgrade").addEventListener("click", function () {
         const player = Imperium.current_player(gameState);
         const tile = Imperium.get_tile_data(player.position);
-        if (!tile) return;
+        if (!tile) {
+            return;
+        }
 
         const levelBefore = gameState.propertyLevels[player.position] || 0;
         gameState = Imperium.upgrade_property(gameState, player.position);
         const levelAfter = gameState.propertyLevels[player.position] || 0;
 
         if (levelAfter > levelBefore) {
-            const degreeName = Degree_Names[levelAfter] || `Level ${levelAfter}`;
+            const degreeName = Degree_Names[
+                levelAfter] ||`Level ${levelAfter}`;
             showToast(`Upgraded ${tile.name} to ${degreeName}!`, "gain");
         }
         renderPlayerPanel();
@@ -953,17 +1136,27 @@ const wireButtons = () => {
     });
 
     // Downgrade Degree
-    getEl("btn-sell-upgrade").addEventListener("click", () => {
+    getEl("btn-sell-upgrade").addEventListener("click", function () {
         const player = Imperium.current_player(gameState);
         const tile = Imperium.get_tile_data(player.position);
-        if (!tile) return;
+        if (!tile) {
+            return;
+        }
 
         gameState = Imperium.sell_property_upgrade(gameState, player.position);
-        const levelAfter = gameState.propertyLevels[player.position] || 0;
-        const degreeName = levelAfter > 0
-            ? Degree_Names[levelAfter] || `Level ${levelAfter}`
-            : "no degree";
-        showToast(`Downgraded ${tile.name} to ${degreeName}!`, "gain");
+
+        let levelAfter = gameState.propertyLevels[player.position] || 0;
+
+        let degreeName = (
+            levelAfter > 0 ?
+                (Degree_Names[levelAfter] || ("Level " + levelAfter)) :
+                "no degree"
+        );
+
+        showToast(
+            "Downgraded " + tile.name + " to " + degreeName + "!",
+            "gain"
+        );
 
         renderPlayerPanel();
         renderUpgradeIndicators();
@@ -971,7 +1164,7 @@ const wireButtons = () => {
     });
 
     // End Turn
-    getEl("btn-end-turn").addEventListener("click", () => {
+    getEl("btn-end-turn").addEventListener("click", function () {
         gameState = Imperium.end_turn(gameState);
         getEl("die-face").textContent = "?";
 
@@ -987,10 +1180,11 @@ const wireButtons = () => {
     });
 
     // Declare Bankruptcy
-    getEl("btn-declare-bankruptcy").addEventListener("click", () => {
+    getEl("btn-declare-bankruptcy").addEventListener("click", function () {
         const player = Imperium.current_player(gameState);
 
-        gameState = Imperium.declare_bankruptcy(gameState, gameState.currentPlayerIndex);
+        gameState = Imperium.declare_bankruptcy(
+            gameState, gameState.currentPlayerIndex);
         showToast(`${player.name} has declared bankruptcy!`, "lose");
 
         // Skip their turn and check if game ended
@@ -1008,7 +1202,7 @@ const wireButtons = () => {
     });
 
     // Pay gap year buyout
-    getEl("btn-pay-gap-year").addEventListener("click", () => {
+    getEl("btn-pay-gap-year").addEventListener("click", function () {
         const player = Imperium.current_player(gameState);
 
         if (player.money < Imperium.gap_year_buyout) {
@@ -1026,49 +1220,71 @@ const wireButtons = () => {
     });
 
     // Roll to escape Gap year
-    getEl("btn-roll-gap-year").addEventListener("click", async () => {
+    getEl("btn-roll-gap-year").addEventListener("click", function () {
         getEl("btn-roll-gap-year").disabled = true;
         getEl("btn-pay-gap-year").disabled = true;
 
-        const result = Imperium.handle_gap_year_turn(gameState, "roll");
+        let result = Imperium.handle_gap_year_turn(gameState, "roll");
         gameState = result.state;
 
-        await animateDice(result.diceValue);
+        animateDice(result.diceValue).then(function () {
 
-        if (result.escaped) {
-            showToast(`Rolled a ${result.diceValue} — you're free!`, "gain");
-            if (result.diceValue === Imperium.gap_year_escape_number) {
-                renderTokensOnBoard();
-                renderPlayerPanel();
-                handleLandingUI();
-                return;
+            if (result.escaped) {
+
+                showToast(
+                    "Rolled a " + result.diceValue + " — you're free!",
+                    "gain"
+                );
+
+                if (result.diceValue === Imperium.gap_year_escape_number) {
+                    renderTokensOnBoard();
+                    renderPlayerPanel();
+                    handleLandingUI();
+                    return;
+                }
+
+                gameState = Imperium.end_turn(gameState);
+
+            } else {
+
+                showToast(
+                    "Rolled a " + result.diceValue +
+                    " — need a " + Imperium.gap_year_escape_number +
+                    ". Turn missed.",
+                    "lose"
+                );
+
+                gameState = Imperium.end_turn(gameState);
             }
-            gameState = Imperium.end_turn(gameState);
-        } else {
-            showToast(`Rolled a ${result.diceValue} — need a ${Imperium.gap_year_escape_number}. Turn missed.`, "lose");
-            gameState = Imperium.end_turn(gameState);
-        }
 
-        getEl("die-face").textContent = "?";
-        renderPlayerPanel();
-        renderTokensOnBoard();
-        updateActionButtons();
+            getEl("die-face").textContent = "?";
+            renderPlayerPanel();
+            renderTokensOnBoard();
+            updateActionButtons();
+
+        });
     });
 
     // Modal Background Click
-    getEl("modal-overlay").addEventListener("click", (e) => {
-        if (e.target.id === "modal-overlay") closeModal();
+    getEl("modal-overlay").addEventListener("click", function (e) {
+        if (e.target.id === "modal-overlay") {
+            closeModal();
+        }
     });
 
     // Trade Modal Logic
-    getEl("btn-trade").addEventListener("click", () => {
-        if (!gameState) return;
+    getEl("btn-trade").addEventListener("click", function () {
+        if (!gameState) {
+            return;
+        }
         const player = Imperium.current_player(gameState);
         const playerIndex = gameState.currentPlayerIndex;
 
         // Select an opponent
-        let optionsHtml = gameState.players.map((p, i) => {
-            if (i === playerIndex || p.isBankrupt) return "";
+        let optionsHtml = gameState.players.map(function (p, i) {
+            if (i === playerIndex || p.isBankrupt) {
+                return "";
+            }
             return `<option value="${i}">${p.name} ${p.emoji}</option>`;
         }).join("");
 
@@ -1078,36 +1294,42 @@ const wireButtons = () => {
         }
 
         let html = `
-        <div style="text-align:center; padding: 20px; color: var(--text-primary);">
+        <div style="text-align:center; padding: 20px;
+        color: var(--text-primary);">
             <h2 style="margin-top:0;">Trade</h2>
             <p>Select a player to trade with:</p>
-            <select id="trade-target" class="trade-input" style="width: 200px; margin-bottom: 20px;">
+            <select id="trade-target" class="trade-input" style="width: 200px;
+            margin-bottom: 20px;">
                 ${optionsHtml}
             </select>
             <br/>
-            <button class="action-btn action-btn--buy" id="trade-next">Next</button>
-            <button class="action-btn action-btn--end" id="trade-cancel" style="margin-left: 10px;">Cancel</button>
+            <button class="action-btn action-btn--buy"
+            id="trade-next">Next</button>
+            <button class="action-btn action-btn--end" id="trade-cancel"
+            style="margin-left: 10px;">Cancel</button>
         </div>`;
 
         openModal(html, false);
 
         getEl("trade-cancel").addEventListener("click", closeModal);
-        getEl("trade-next").addEventListener("click", () => {
+        getEl("trade-next").addEventListener("click", function () {
             const targetIndex = parseInt(getEl("trade-target").value, 10);
             openTradeOfferBuilder(playerIndex, targetIndex);
         });
     });
 
     // Global Keyboard Accessibility
-    document.addEventListener("keydown", (e) => {
+    document.addEventListener("keydown", function (e) {
         // Don't trigger if typing in an input
-        if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+        if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") {
+            return;
+        }
 
         const overlay = getEl("modal-overlay");
         const isModalOpen = !overlay.classList.contains("hidden");
 
         // Map keys to buttons if the button is visible and not disabled
-        const triggerBtn = (id) => {
+        const triggerBtn = function (id) {
             const btn = getEl(id);
             if (btn && !btn.classList.contains("hidden") && !btn.disabled) {
                 btn.click();
@@ -1118,43 +1340,46 @@ const wireButtons = () => {
 
         // Escape to close modal
         if (e.key === "Escape") {
-            if (isModalOpen) closeModal();
+            if (isModalOpen) {
+                closeModal();
+            }
             return;
         }
 
         switch (e.key.toLowerCase()) {
-            case "enter":
-                if (isModalOpen) {
-                    triggerBtn("modal-close");
-                    // If trade builder or event card is open with their own confirm/ok buttons
-                    triggerBtn("trade-confirm");
-                    triggerBtn("trade-next");
-                } else {
-                    if (!triggerBtn("btn-roll")) {
-                        triggerBtn("btn-end-turn");
-                        triggerBtn("btn-roll-gap-year");
-                    }
+        case "enter":
+            if (isModalOpen) {
+                triggerBtn("modal-close");
+                // If trade builder or event card is open
+                // with their own confirm/ok buttons
+                triggerBtn("trade-confirm");
+                triggerBtn("trade-next");
+            } else {
+                if (!triggerBtn("btn-roll")) {
+                    triggerBtn("btn-end-turn");
+                    triggerBtn("btn-roll-gap-year");
                 }
-                break;
-            case "q":
-                triggerBtn("btn-buy");
-                triggerBtn("btn-pay-gap-year");
-                break;
-            case "w":
-                triggerBtn("btn-upgrade");
-                break;
-            case "s":
-                triggerBtn("btn-sell-upgrade");
-                break;
-            case "d":
-                triggerBtn("btn-end-turn");
-                break;
-            case "t":
-                triggerBtn("btn-trade");
-                break;
-            case "k":
-                triggerBtn("btn-declare-bankruptcy");
-                break;
+            }
+            break;
+        case "q":
+            triggerBtn("btn-buy");
+            triggerBtn("btn-pay-gap-year");
+            break;
+        case "w":
+            triggerBtn("btn-upgrade");
+            break;
+        case "s":
+            triggerBtn("btn-sell-upgrade");
+            break;
+        case "d":
+            triggerBtn("btn-end-turn");
+            break;
+        case "t":
+            triggerBtn("btn-trade");
+            break;
+        case "k":
+            triggerBtn("btn-declare-bankruptcy");
+            break;
         }
     });
 };
@@ -1162,75 +1387,119 @@ const wireButtons = () => {
 /**
  * Opens the two-column trade offer builder.
  */
-const openTradeOfferBuilder = (fromIndex, toIndex) => {
+const openTradeOfferBuilder = function (fromIndex, toIndex) {
     const playerA = gameState.players[fromIndex];
     const playerB = gameState.players[toIndex];
 
     // Helper to render property checkboxes
-    const renderProps = (player, prefix) => {
-        if (player.properties.length === 0) return `<p style="font-size: 0.8rem; color: var(--text-muted);">No properties</p>`;
-        return player.properties.map(tileId => {
-            const data = Imperium.get_tile_data(tileId);
-            const level = gameState.propertyLevels[tileId] || 0;
-            const disabled = level > 0 ? "disabled" : "";
-            const disabledText = level > 0 ? `<span style="color:var(--text-danger); font-size: 0.7rem;">(Upgraded)</span>` : "";
-            return `
-                <label style="display:block; margin: 4px 0; font-size: 0.9rem; text-align: left; opacity: ${level > 0 ? 0.5 : 1};">
-                    <input type="checkbox" name="${prefix}-props" value="${tileId}" ${disabled}>
-                    ${data.name} ${disabledText}
-                </label>
-            `;
+    const renderProps = function (player, prefix) {
+        if (player.properties.length === 0) {
+            return `<p style="font-size: 0.8rem;
+            color: var(--text-muted);">No properties</p>`;
+        }
+        return player.properties.map(function (tileId) {
+            let data = Imperium.get_tile_data(tileId);
+            let level = gameState.propertyLevels[tileId] || 0;
+
+            let disabled = (level > 0 ? "disabled" : "");
+
+            let disabledText = (
+                level > 0 ?
+                    "<span style=\"color:var(--text-danger);" +
+                    "font-size:0.7rem;\">" +
+                    "(Upgraded)</span>" :
+                    ""
+            );
+
+            return (
+                "<label style=\"display:block; margin:4px 0; " +
+                "font-size:0.9rem; text-align:left; " +
+                "opacity:" + (level > 0 ? 0.5 : 1) + ";\">" +
+
+                "<input type=\"checkbox\" " +
+                "name=\"" + prefix + "-props\" " +
+                "value=\"" + tileId + "\" " +
+                disabled + ">" +
+
+                data.name + " " +
+                disabledText +
+
+                "</label>"
+            );
         }).join("");
     };
 
     let html = `
-    <div style="padding: 20px; width: 100%; min-width: 480px; color: var(--text-primary); box-sizing: border-box;">
+    <div style="padding: 20px; width: 100%; min-width: 480px;
+    color: var(--text-primary); box-sizing: border-box;">
         <h2 style="margin-top:0; text-align:center;">Trade Offer</h2>
         <div style="display: flex; gap: 20px; flex-wrap: nowrap;">
             <!-- Player A -->
-            <div style="flex: 1; padding: 10px; background: var(--bg-panel); border-radius: 8px;">
-                <h3 style="margin-top:0; color: var(--accent);">${playerA.name} Offers:</h3>
-                <label style="display:block; margin-bottom: 10px; font-weight: 600;">
+            <div style="flex: 1; padding: 10px; background: var(--bg-panel);
+            border-radius: 8px;">
+                <h3 style="margin-top:0; color: var(--accent);">${
+                    playerA.name} Offers:</h3>
+                <label style="display:block; margin-bottom: 10px;
+                font-weight: 600;">
                     Money (£): <br/>
-                    <input type="number" id="trade-money-a" class="trade-input" value="0" min="0" max="${playerA.money}" style="width: 100%;">
-                    <small style="color: var(--text-muted);">Max: £${playerA.money}</small>
+                    <input type="number" id="trade-money-a" class="trade-input"
+                    value="0" min="0" max="${playerA.money}"
+                    style="width: 100%;"><small
+                    style="color: var(--text-muted);">Max: £${
+                        playerA.money}</small>
                 </label>
                 <div style="font-weight: 600;">Properties:</div>
-                <div style="max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
-                    ${renderProps(playerA, 'a')}
+                <div style="max-height: 150px; overflow-y: auto;
+                background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+                    ${renderProps(playerA, "a")}
                 </div>
             </div>
-            
             <!-- Player B -->
-            <div style="flex: 1; padding: 10px; background: var(--bg-panel); border-radius: 8px;">
-                <h3 style="margin-top:0; color: var(--accent);">${playerB.name} Offers:</h3>
-                <label style="display:block; margin-bottom: 10px; font-weight: 600;">
+            <div style="flex: 1; padding: 10px;
+            background: var(--bg-panel); border-radius: 8px;">
+                <h3 style="margin-top:0; color: var(--accent);">${
+                    playerB.name} Offers:</h3>
+                <label style="display:block; margin-bottom: 10px;
+                font-weight: 600;">
                     Money (£): <br/>
-                    <input type="number" id="trade-money-b" class="trade-input" value="0" min="0" max="${playerB.money}" style="width: 100%;">
-                    <small style="color: var(--text-muted);">Max: £${playerB.money}</small>
+                    <input type="number" id="trade-money-b" class="trade-input"
+                    value="0" min="0" max="${playerB.money}"
+                    style="width: 100%;"><small
+                    style="color: var(--text-muted);">Max: £${
+                        playerB.money}</small>
                 </label>
                 <div style="font-weight: 600;">Properties:</div>
-                <div style="max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
-                    ${renderProps(playerB, 'b')}
+                <div style="max-height: 150px; overflow-y: auto;
+                background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+                    ${renderProps(playerB, "b")}
                 </div>
             </div>
         </div>
-        
         <div style="text-align: center; margin-top: 20px;">
-            <button class="action-btn action-btn--buy" id="trade-confirm" style="width: 150px;">Execute Trade</button>
-            <button class="action-btn action-btn--end" id="trade-cancel-builder" style="width: 150px; margin-left: 10px;">Cancel</button>
+            <button class="action-btn action-btn--buy" id="trade-confirm"
+            style="width: 150px;">Execute Trade</button>
+            <button class="action-btn action-btn--end" id="trade-cancel-builder"
+            style="width: 150px; margin-left: 10px;">Cancel</button>
         </div>
     </div>`;
 
     openModal(html, false);
 
     getEl("trade-cancel-builder").addEventListener("click", closeModal);
-    getEl("trade-confirm").addEventListener("click", () => {
+    getEl("trade-confirm").addEventListener("click", function () {
         const moneyA = parseInt(getEl("trade-money-a").value, 10) || 0;
         const moneyB = parseInt(getEl("trade-money-b").value, 10) || 0;
 
-        const propsA = Array.from(document.querySelectorAll('input[name="a-props"]:checked')).map(cb => parseInt(cb.value, 10));
-        const propsB = Array.from(document.querySelectorAll('input[name="b-props"]:checked')).map(cb => parseInt(cb.value, 10));
+        const propsA = Array.from(document.querySelectorAll(
+            "input[name=\"a-props\"]:checked")).map(
+                function(cb) {
+                    return parseInt(cb.value, 10);
+                });
+        const propsB = Array.from(document.querySelectorAll(
+            "input[name=\"b-props\"]:checked")).map(
+                function(cb) {
+                    return parseInt(cb.value, 10);
+                });
 
         const offer = {
             moneyFromA: moneyA,
@@ -1239,13 +1508,15 @@ const openTradeOfferBuilder = (fromIndex, toIndex) => {
             propertiesFromB: propsB
         };
 
-        const newState = Imperium.execute_trade(gameState, fromIndex, toIndex, offer);
+        const newState = Imperium.execute_trade(
+            gameState,fromIndex, toIndex, offer);
 
         if (!newState) {
             showToast("Invalid trade offer! Check money and upgrades.", "lose");
         } else {
             gameState = newState;
-            showToast(`Trade executed between ${playerA.name} and ${playerB.name}!`, "gain");
+            showToast(`Trade executed between ${playerA.name} and ${
+                playerB.name}!`, "gain");
             closeModal();
             renderPlayerPanel();
             renderOwnerIcons();
@@ -1260,17 +1531,34 @@ const openTradeOfferBuilder = (fromIndex, toIndex) => {
  * Shows the win screen with the winner's details.
  * @param {Imperium.Player|null} winner
  */
-const showWinScreen = (winner) => {
+const showWinScreen = function (winner) {
     const screen = getEl("win-screen");
-    getEl("win-emoji").textContent = winner ? winner.emoji : "🏆";
-    getEl("win-name").textContent = winner ? `${winner.name} Wins!` : "Game Over!";
-    getEl("win-money").textContent = winner ? `Final Balance: £${winner.money.toLocaleString()}` : "";
+
+    getEl("win-emoji").textContent = (
+        winner ?
+            winner.emoji :
+            "🏆"
+    );
+
+    getEl("win-name").textContent = (
+        winner ?
+            (winner.name + " Wins!") :
+            "Game Over!"
+    );
+
+    getEl("win-money").textContent = (
+        winner ?
+            ("Final Balance: £" +
+                winner.money.toLocaleString()) :
+            ""
+    );
+
     screen.classList.remove("hidden");
 };
 
 // ------------------ Boot Sequence ------------------
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", function () {
     console.log("Imperium UI Initialised — using Imperium.js");
     initHomeScreen();
     wireButtons();
