@@ -54,8 +54,10 @@ const Tile_Info = {
 };
 
 /** Human-readable names for upgrade levels. */
-const Degree_Names = {"1": "Bachelor's Degree", "2":
-    "Master's Degree", "3": "PhD"};
+const Degree_Names = {
+    "1": "Bachelor's Degree", "2":
+        "Master's Degree", "3": "PhD"
+};
 
 
 // ------------------State-------------------------------------
@@ -88,9 +90,8 @@ const initHomeScreen = function () {
     const hint = getEl("home-money-hint");
 
     // Display how much money everyone starts with
-    hint.innerHTML = `Each player starts with <strong>£${
-        Imperium.starting_money.toLocaleString()
-    }</strong>`;
+    hint.innerHTML = `Each player starts with <strong>£${Imperium.starting_money.toLocaleString()
+        }</strong>`;
 
     let playerCount = 0;
 
@@ -189,7 +190,7 @@ const buildPlayerSetups = function (n, container) {
         picker.className = "icon-picker";
         picker.id = `icon-picker-${i}`;
 
-        R.forEach(function ({emoji}) {
+        R.forEach(function ({ emoji }) {
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "icon-btn";
@@ -232,7 +233,7 @@ const refreshIconPickers = function (n) {
             if (selectedIcons[i] === emoji) {
                 btn.classList.add("selected");
             } else if (R.includes(emoji, takenEmojis) &&
-            selectedIcons[i] !== emoji){
+                selectedIcons[i] !== emoji) {
                 btn.classList.add("taken");
             }
         });
@@ -516,7 +517,7 @@ const renderPlayerPanel = function () {
 
         if (player.properties.length === 0) {
             propsList.innerHTML =
-            `<span class="pc-props-empty">None yet</span>`;
+                `<span class="pc-props-empty">None yet</span>`;
         } else {
             // Render a chip for each property they own
             player.properties.forEach(function (tileId) {
@@ -527,11 +528,11 @@ const renderPlayerPanel = function () {
 
                 const group = (
                     (data && data.colourGroup) ?
-                        Imperium.get_colour_group(data.colourGroup): null
+                        Imperium.get_colour_group(data.colourGroup) : null
                 );
 
                 const dotColor = (
-                    group ? group.colour: "var(--accent)"
+                    group ? group.colour : "var(--accent)"
                 );
 
                 const name = (
@@ -551,10 +552,8 @@ const renderPlayerPanel = function () {
                 // Add a level badge if they've upgraded it
                 const upgradeLevel = gameState.propertyLevels[tileId] || 0;
                 if (upgradeLevel > 0) {
-                    const degreeLabel = Degree_Names[upgradeLevel] || `Level ${
-                        upgradeLevel}`;
-                    chip.innerHTML += `<div class="prop-chip-level">${
-                        degreeLabel}</div>`;
+                    const degreeLabel = Degree_Names[upgradeLevel] || `Level ${upgradeLevel}`;
+                    chip.innerHTML += `<div class="prop-chip-level">${degreeLabel}</div>`;
                 }
 
                 propsList.appendChild(chip);
@@ -574,7 +573,7 @@ const renderPlayerPanel = function () {
  * Determines which buttons (Roll, Buy, Upgrade, End Turn, etc.)
  * should be visible to the player at this exact moment.
  */
-const updateActionButtons = function() {
+const updateActionButtons = function () {
     if (!gameState) {
         return;
     }
@@ -649,8 +648,7 @@ const updateActionButtons = function() {
 
                 if (level > 0 && tile.sellPrice) {
                     btnSellUpgrade.classList.remove("hidden");
-                    btnSellUpgrade.textContent = `Downgrade — +£${
-                        tile.sellPrice}`;
+                    btnSellUpgrade.textContent = `Downgrade — +£${tile.sellPrice}`;
                 }
             }
         }
@@ -745,39 +743,39 @@ function animateMovement(steps) {
  * and figures out what message/UI to show the user.
  */
 const handleLandingUI = function () {
-    const {state, action} = Imperium.handle_landing(gameState);
+    const { state, action } = Imperium.handle_landing(gameState);
     gameState = state;
 
     // React to whatever the engine said happened
     switch (action.type) {
-    case "property_unowned":
-        showPropertyCard(action.tileId, false);
-        break;
-    case "property_owned_self":
-        showPropertyCard(action.tileId, true);
-        break;
-    case "property_owned_other":
-        showToast(`Paid £${action.rentAmount} rent
+        case "property_unowned":
+            showPropertyCard(action.tileId, false);
+            break;
+        case "property_owned_self":
+            showPropertyCard(action.tileId, true);
+            break;
+        case "property_owned_other":
+            showToast(`Paid £${action.rentAmount} rent
             to ${action.owner.name}`, "lose");
-        break;
-    case "event":
-        showEventCard(action.card);
-        break;
-    case "tax":
-        showToast(`${action.tileName}: Lost £${action.amount}`, "lose");
-        break;
-    case "go":
-        showToast("Landed on Student Finance! Collected £200", "gain");
-        break;
-    case "go_to_gap_year":
-        showToast("You Fail! Go to Gap Year!", "lose");
-        break;
-    case "gap_year_visiting":
-        showToast("Just visiting Gap Year", "info");
-        break;
-    case "free_parking":
-        showToast("Free Parking — relax!", "info");
-        break;
+            break;
+        case "event":
+            showEventCard(action.card);
+            break;
+        case "tax":
+            showToast(`${action.tileName}: Lost £${action.amount}`, "lose");
+            break;
+        case "go":
+            showToast("Landed on Student Finance! Collected £200", "gain");
+            break;
+        case "go_to_gap_year":
+            showToast("You Fail! Go to Gap Year!", "lose");
+            break;
+        case "gap_year_visiting":
+            showToast("Just visiting Gap Year", "info");
+            break;
+        case "Student_Union":
+            showToast("Student Union — relax!", "info");
+            break;
     }
 
     // After resolving the tile, check if anyone won
@@ -836,15 +834,15 @@ const showPropertyCard = function (tileId, infoOnly = false) {
 
     let canBuy = false;
     if (!infoOnly && !owner && Imperium.is_property(tileId) &&
-    player.money >= tile.price) {
+        player.money >= tile.price) {
         canBuy = true;
     }
 
     // Check if the current player owns this and can upgrade/downgrade
     const ownerIndex = (
-    owner ?
-        gameState.players.indexOf(owner) :
-        -1
+        owner ?
+            gameState.players.indexOf(owner) :
+            -1
     );
     const isOwnerCurrentPlayer = ownerIndex === playerIndex;
 
@@ -888,22 +886,19 @@ const showPropertyCard = function (tileId, infoOnly = false) {
         buttonsHtml += `<button class="action-btn
         action-btn--buy"id="modal-buy"
         style="margin-top: 10px; min-width: 120px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Buy — £${
-            tile.price}</button>`;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Buy — £${tile.price}</button>`;
     }
     if (canUpgrade) {
         buttonsHtml += `<button class="action-btn
         action-btn--buy"id="modal-upgrade"
         style="margin-top: 10px; min-width: 120px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Upgrade — £${
-            tile.upgradeCost}</button>`;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Upgrade — £${tile.upgradeCost}</button>`;
     }
     if (canDowngrade) {
         buttonsHtml += `<button class="action-btn
         action-btn--buy" id="modal-downgrade"
         style="margin-top: 10px; min-width: 120px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Downgrade +£${
-            tile.sellPrice}</button>`;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Downgrade +£${tile.sellPrice}</button>`;
     }
     buttonsHtml += `<button class="action-btn
     action-btn--end" id="modal-close"
@@ -992,7 +987,7 @@ const showEventCard = function (card) {
     }
     else {
         const tileName = Imperium.get_tile_data(effect.tileId)?.name ||
-        `Tile ${effect.tileId}`;
+            `Tile ${effect.tileId}`;
         effectText = `Move to ${tileName}`;
     }
 
@@ -1002,24 +997,24 @@ const showEventCard = function (card) {
             "lose"
     );
 
-    let  html =
+    let html =
         "<div class=\"event-card-modal\">" +
-            "<div class=\"event-card-top\">" +
-                "<div class=\"event-card-subtitle\">Event Card</div>" +
-                "<h3>" + card.title + "</h3>" +
-            "</div>" +
+        "<div class=\"event-card-top\">" +
+        "<div class=\"event-card-subtitle\">Event Card</div>" +
+        "<h3>" + card.title + "</h3>" +
+        "</div>" +
 
-            "<div class=\"event-card-body\">" +
-                "<p>" + card.description + "</p>" +
+        "<div class=\"event-card-body\">" +
+        "<p>" + card.description + "</p>" +
 
-                "<div class=\"event-card-effect " + gainClass + "\">" +
-                    effectText +
-                "</div>" +
+        "<div class=\"event-card-effect " + gainClass + "\">" +
+        effectText +
+        "</div>" +
 
-                "<button class=\"action-btn action-btn--end\" " +
-                "id=\"modal-close\" style=\"width:100%\">OK</button>" +
+        "<button class=\"action-btn action-btn--end\" " +
+        "id=\"modal-close\" style=\"width:100%\">OK</button>" +
 
-            "</div>" +
+        "</div>" +
         "</div>";
 
     openModal(html);
@@ -1062,7 +1057,7 @@ const wireButtons = function () {
 
     // Roll Dice
     getEl("btn-roll").addEventListener("click", function () {
-    getEl("btn-roll").disabled = true;
+        getEl("btn-roll").disabled = true;
 
         // 1. Roll in state
         gameState = Imperium.roll_dice(gameState);
@@ -1127,7 +1122,7 @@ const wireButtons = function () {
 
         if (levelAfter > levelBefore) {
             const degreeName = Degree_Names[
-                levelAfter] ||`Level ${levelAfter}`;
+                levelAfter] || `Level ${levelAfter}`;
             showToast(`Upgraded ${tile.name} to ${degreeName}!`, "gain");
         }
         renderPlayerPanel();
@@ -1347,39 +1342,39 @@ const wireButtons = function () {
         }
 
         switch (e.key.toLowerCase()) {
-        case "enter":
-            if (isModalOpen) {
-                triggerBtn("modal-close");
-                // If trade builder or event card is open
-                // with their own confirm/ok buttons
-                triggerBtn("trade-confirm");
-                triggerBtn("trade-next");
-            } else {
-                if (!triggerBtn("btn-roll")) {
-                    triggerBtn("btn-end-turn");
-                    triggerBtn("btn-roll-gap-year");
+            case "enter":
+                if (isModalOpen) {
+                    triggerBtn("modal-close");
+                    // If trade builder or event card is open
+                    // with their own confirm/ok buttons
+                    triggerBtn("trade-confirm");
+                    triggerBtn("trade-next");
+                } else {
+                    if (!triggerBtn("btn-roll")) {
+                        triggerBtn("btn-end-turn");
+                        triggerBtn("btn-roll-gap-year");
+                    }
                 }
-            }
-            break;
-        case "q":
-            triggerBtn("btn-buy");
-            triggerBtn("btn-pay-gap-year");
-            break;
-        case "w":
-            triggerBtn("btn-upgrade");
-            break;
-        case "s":
-            triggerBtn("btn-sell-upgrade");
-            break;
-        case "d":
-            triggerBtn("btn-end-turn");
-            break;
-        case "t":
-            triggerBtn("btn-trade");
-            break;
-        case "k":
-            triggerBtn("btn-declare-bankruptcy");
-            break;
+                break;
+            case "q":
+                triggerBtn("btn-buy");
+                triggerBtn("btn-pay-gap-year");
+                break;
+            case "w":
+                triggerBtn("btn-upgrade");
+                break;
+            case "s":
+                triggerBtn("btn-sell-upgrade");
+                break;
+            case "d":
+                triggerBtn("btn-end-turn");
+                break;
+            case "t":
+                triggerBtn("btn-trade");
+                break;
+            case "k":
+                triggerBtn("btn-declare-bankruptcy");
+                break;
         }
     });
 };
@@ -1437,16 +1432,14 @@ const openTradeOfferBuilder = function (fromIndex, toIndex) {
             <!-- Player A -->
             <div style="flex: 1; padding: 10px; background: var(--bg-panel);
             border-radius: 8px;">
-                <h3 style="margin-top:0; color: var(--accent);">${
-                    playerA.name} Offers:</h3>
+                <h3 style="margin-top:0; color: var(--accent);">${playerA.name} Offers:</h3>
                 <label style="display:block; margin-bottom: 10px;
                 font-weight: 600;">
                     Money (£): <br/>
                     <input type="number" id="trade-money-a" class="trade-input"
                     value="0" min="0" max="${playerA.money}"
                     style="width: 100%;"><small
-                    style="color: var(--text-muted);">Max: £${
-                        playerA.money}</small>
+                    style="color: var(--text-muted);">Max: £${playerA.money}</small>
                 </label>
                 <div style="font-weight: 600;">Properties:</div>
                 <div style="max-height: 150px; overflow-y: auto;
@@ -1457,16 +1450,14 @@ const openTradeOfferBuilder = function (fromIndex, toIndex) {
             <!-- Player B -->
             <div style="flex: 1; padding: 10px;
             background: var(--bg-panel); border-radius: 8px;">
-                <h3 style="margin-top:0; color: var(--accent);">${
-                    playerB.name} Offers:</h3>
+                <h3 style="margin-top:0; color: var(--accent);">${playerB.name} Offers:</h3>
                 <label style="display:block; margin-bottom: 10px;
                 font-weight: 600;">
                     Money (£): <br/>
                     <input type="number" id="trade-money-b" class="trade-input"
                     value="0" min="0" max="${playerB.money}"
                     style="width: 100%;"><small
-                    style="color: var(--text-muted);">Max: £${
-                        playerB.money}</small>
+                    style="color: var(--text-muted);">Max: £${playerB.money}</small>
                 </label>
                 <div style="font-weight: 600;">Properties:</div>
                 <div style="max-height: 150px; overflow-y: auto;
@@ -1492,12 +1483,12 @@ const openTradeOfferBuilder = function (fromIndex, toIndex) {
 
         const propsA = Array.from(document.querySelectorAll(
             "input[name=\"a-props\"]:checked")).map(
-                function(cb) {
+                function (cb) {
                     return parseInt(cb.value, 10);
                 });
         const propsB = Array.from(document.querySelectorAll(
             "input[name=\"b-props\"]:checked")).map(
-                function(cb) {
+                function (cb) {
                     return parseInt(cb.value, 10);
                 });
 
@@ -1509,14 +1500,13 @@ const openTradeOfferBuilder = function (fromIndex, toIndex) {
         };
 
         const newState = Imperium.execute_trade(
-            gameState,fromIndex, toIndex, offer);
+            gameState, fromIndex, toIndex, offer);
 
         if (!newState) {
             showToast("Invalid trade offer! Check money and upgrades.", "lose");
         } else {
             gameState = newState;
-            showToast(`Trade executed between ${playerA.name} and ${
-                playerB.name}!`, "gain");
+            showToast(`Trade executed between ${playerA.name} and ${playerB.name}!`, "gain");
             closeModal();
             renderPlayerPanel();
             renderOwnerIcons();

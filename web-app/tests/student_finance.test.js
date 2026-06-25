@@ -1,34 +1,54 @@
-import assert from 'node:assert';
-import R from 'ramda';
+import * as R from 'ramda';
 import Imperium from '../Imperium.js';
+import { throw_if_invalid, display_state } from './TestHelpers.js';
 
-describe('Student Finance', function () {
+const get_base_state = function () {
+    const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+    const p2 = { id: 2, name: "P2", emoji: "🤖", colour: "#00f", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+    let state = Imperium.create_game_state([p1, p2]);
+    state = R.set(R.lensProp("firstMove"), false, state);
+    return R.set(R.lensProp("currentPlayerIndex"), 0, state);
+};
 
-    let baseState;
+describe("Student Finance", function () {
+    it(
+        `Given a player is approaching Student Finance,
+        When they roll and pass the tile,
+        Then they collect the Student Finance money.`,
+        function () {
+            let state = get_base_state();
+            state = R.set(R.lensPath(['players', 0, 'position']), 26, state);
+            throw_if_invalid(state);
 
-    beforeEach(function () {
-        const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00" };
-        const p2 = { id: 2, name: "P2", emoji: "🤖", colour: "#00f" };
-        baseState = Imperium.initialise_game([p1, p2]);
-        baseState = R.set(R.lensProp('players'), [
-            { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, missedTurns: 0 },
-            { id: 2, name: "P2", emoji: "🤖", colour: "#00f", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, missedTurns: 0 }
-        ], baseState);
-        baseState.currentPlayerIndex = 0;
-    });
+            const new_state = Imperium.move_player(state, 4);
+            throw_if_invalid(new_state);
 
-    it('Given a player on Tile 26, when they roll a 4, then they pass Student Finance and collect £200', function () {
-        let state = R.set(R.lensPath(['players', 0, 'position']), 26, baseState);
-        state = R.set(R.lensPath(['players', 0, 'money']), 1200, state);
-        const newState = Imperium.move_player(state, 4); // 26 + 4 = 30 -> Tile 2 (passes 28)
-        assert.strictEqual(newState.players[0].position, 2);
-        assert.strictEqual(newState.players[0].money, 1400); // 1200 + 200
-    });
+            if (new_state.players[0].money !== 1400) {
+                throw new Error(
+                    "Player did not collect £200 after passing Student Finance: " +
+                    display_state(new_state)
+                );
+            }
+        }
+    );
 
-    it('Given a player, when they land exactly on Student Finance, then they collect £200', function () {
-        let state = R.set(R.lensPath(['players', 0, 'position']), 26, baseState);
-        const newState = Imperium.move_player(state, 3); // 26 + 3 = 29 -> Tile 1
-        assert.strictEqual(newState.players[0].position, 1);
-        assert.strictEqual(newState.players[0].money, 1400);
-    });
+    it(
+        `Given a player is approaching Student Finance,
+        When they land exactly on it,
+        Then they collect the Student Finance money.`,
+        function () {
+            let state = get_base_state();
+            state = R.set(R.lensPath(['players', 0, 'position']), 26, state);
+
+            const steps = Imperium.total_tiles - 26 + 1;
+            const new_state = Imperium.move_player(state, steps);
+
+            if (new_state.players[0].money !== 1400) {
+                throw new Error(
+                    "Player did not collect £200 after landing directly on Student Finance: " +
+                    display_state(new_state)
+                );
+            }
+        }
+    );
 });

@@ -1,49 +1,68 @@
-import assert from 'node:assert';
-import R from 'ramda';
+import * as R from 'ramda';
 import Imperium from '../Imperium.js';
+import { throw_if_invalid, display_state } from './TestHelpers.js';
 
-describe('Trading System', function () {
+const get_base_state = function () {
+    const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+    const p2 = { id: 2, name: "P2", emoji: "🤖", colour: "#00f", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+    let state = Imperium.create_game_state([p1, p2]);
+    return R.set(R.lensProp("currentPlayerIndex"), 0, state);
+};
 
-    let baseState;
+describe("Trading", function () {
+    it(
+        `Given two players and a valid trade offer,
+        When the trade is executed,
+        Then money and properties are exchanged and the total economy remains balanced.`,
+        function () {
+            let state = get_base_state();
+            state = R.set(R.lensPath(['players', 0, 'properties']), [2], state); // P1 owns Huxley
+            state = R.set(R.lensPath(['players', 1, 'properties']), [4], state); // P2 owns Westbound
+            throw_if_invalid(state);
 
-    beforeEach(function () {
-        const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00" };
-        const p2 = { id: 2, name: "P2", emoji: "🤖", colour: "#00f" };
-        baseState = Imperium.initialise_game([p1, p2]);
-        baseState = R.set(R.lensProp('players'), [
-            { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, missedTurns: 0 },
-            { id: 2, name: "P2", emoji: "🤖", colour: "#00f", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, missedTurns: 0 }
-        ], baseState);
-        baseState.currentPlayerIndex = 0;
-    });
+            const offer = {
+                moneyFromA: 100,
+                moneyFromB: 0,
+                propertiesFromA: [2],
+                propertiesFromB: [4]
+            };
 
-    it('Given two players, when P1 offers money for P2s property, then the trade executes and ownership updates', function () {
-        // P2 owns tile 2
-        let state = R.set(R.lensPath(['players', 1, 'properties']), [2], baseState);
+            const new_state = Imperium.execute_trade(state, 0, 1, offer);
+            throw_if_invalid(new_state);
 
-        const offer = {
-            moneyFromA: 200,
-            moneyFromB: 0,
-            propertiesFromA: [],
-            propertiesFromB: [2]
-        };
+            const p1 = new_state.players[0];
+            const p2 = new_state.players[1];
 
-        const newState = Imperium.execute_trade(state, 0, 1, offer);
-        assert.notStrictEqual(newState, null);
-        assert.strictEqual(newState.players[0].money, 1000); // 1200 - 200
-        assert.ok(newState.players[0].properties.includes(2));
-        assert.strictEqual(newState.players[1].money, 1400); // 1200 + 200
-        assert.ok(!newState.players[1].properties.includes(2));
-    });
+            if (p1.money !== 1100 || !p1.properties.includes(4)) {
+                throw new Error("Player 1 trade assets were incorrectly managed: " + display_state(new_state));
+            }
 
-    it('Given two players, when P1 offers more money than they have, then the trade fails', function () {
-        const offer = {
-            moneyFromA: 5000, // Has 1200
-            moneyFromB: 0,
-            propertiesFromA: [],
-            propertiesFromB: []
-        };
-        const newState = Imperium.execute_trade(baseState, 0, 1, offer);
-        assert.strictEqual(newState, null);
-    });
+            if (p2.money !== 1300 || !p2.properties.includes(2)) {
+                throw new Error("Player 2 trade assets were incorrectly managed: " + display_state(new_state));
+            }
+        }
+    );
+
+    it(
+        `Given a trade offer where a player offers properties they do not own,
+        When the trade is executed,
+        Then it should fail and return null.`,
+        function () {
+            let state = get_base_state();
+            state = R.set(R.lensPath(['players', 0, 'properties']), [2], state);
+
+            const offer = {
+                moneyFromA: 0,
+                moneyFromB: 0,
+                propertiesFromA: [4], // P1 does not own Westbound
+                propertiesFromB: []
+            };
+
+            const new_state = Imperium.execute_trade(state, 0, 1, offer);
+
+            if (new_state !== null) {
+                throw new Error("Invalid trade was allowed to process: " + display_state(new_state));
+            }
+        }
+    );
 });

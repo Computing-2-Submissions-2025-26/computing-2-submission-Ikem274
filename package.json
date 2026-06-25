@@ -6,6 +6,9 @@
   "main": "web-app/Imperium.js",
   "author": "",
   "license": "ISC",
+  "scripts": {
+    "test": "node ./node_modules/mocha/bin/mocha \"web-app/tests/*.test.js\""
+  },
   "dependencies": {
     "ramda": "^0.32.0"
   },

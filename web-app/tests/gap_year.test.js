@@ -1,35 +1,57 @@
-import assert from 'node:assert';
-import R from 'ramda';
+import * as R from 'ramda';
 import Imperium from '../Imperium.js';
+import { throw_if_invalid, display_state } from './TestHelpers.js';
 
-describe('Gap Year', function () {
+const get_base_state = function () {
+    const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+    const p2 = { id: 2, name: "P2", emoji: "🤖", colour: "#00f", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+    let state = Imperium.create_game_state([p1, p2]);
+    return R.set(R.lensProp("currentPlayerIndex"), 0, state);
+};
 
-    let baseState;
+describe("Gap Year", function () {
+    it(
+        `Given a player is sent to Gap Year,
+        When they choose to pay the buyout,
+        Then their money decreases by the buyout amount and they are freed.`,
+        function () {
+            let state = get_base_state();
+            state = R.set(R.lensPath(['players', 0, 'inGapYear']), true, state);
+            throw_if_invalid(state);
 
-    beforeEach(function () {
-        const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00" };
-        const p2 = { id: 2, name: "P2", emoji: "🤖", colour: "#00f" };
-        baseState = Imperium.initialise_game([p1, p2]);
-        baseState = R.set(R.lensProp('players'), [
-            { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, missedTurns: 0 },
-            { id: 2, name: "P2", emoji: "🤖", colour: "#00f", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, missedTurns: 0 }
-        ], baseState);
-        baseState.currentPlayerIndex = 0;
-    });
+            const result = Imperium.handle_gap_year_turn(state, 'pay');
+            throw_if_invalid(result.state);
 
-    it('Given a player is sent to gap year, when they choose to pay the buyout, then they lose £50 and are freed', function () {
-        let state = R.set(R.lensPath(['players', 0, 'inGapYear']), true, baseState);
-        const result = Imperium.handle_gap_year_turn(state, 'pay');
-        assert.strictEqual(result.state.players[0].money, 1150); // 1200 - 50
-        assert.strictEqual(result.state.players[0].inGapYear, false);
-    });
-
-    it('Given a player is in gap year, when they choose to roll and fail, then they miss their turn', function () {
-        let state = R.set(R.lensPath(['players', 0, 'inGapYear']), true, baseState);
-        // Dice is random, but if they don't escape they must still be in gap year
-        const result = Imperium.handle_gap_year_turn(state, 'roll');
-        if (!result.escaped) {
-            assert.strictEqual(result.state.players[0].inGapYear, true);
+            const p1 = result.state.players[0];
+            if (p1.money !== 1150 || p1.inGapYear !== false) {
+                throw new Error(
+                    "Paying gap year buyout did not deduct money or free the player: " +
+                    display_state(result.state)
+                );
+            }
         }
-    });
+    );
+
+    it(
+        `Given a player is in Gap Year,
+        When they choose to roll and fail to escape,
+        Then their gap year turns increase and they remain in Gap Year.`,
+        function () {
+            let state = get_base_state();
+            state = R.set(R.lensPath(['players', 0, 'inGapYear']), true, state);
+            state = R.set(R.lensPath(['players', 0, 'gapYearTurns']), 0, state);
+
+            const result = Imperium.handle_gap_year_turn(state, 'roll');
+
+            if (!result.escaped) {
+                const p1 = result.state.players[0];
+                if (p1.inGapYear !== true || p1.gapYearTurns !== 1) {
+                    throw new Error(
+                        "Failing a gap year roll did not properly retain the player: " +
+                        display_state(result.state)
+                    );
+                }
+            }
+        }
+    );
 });
