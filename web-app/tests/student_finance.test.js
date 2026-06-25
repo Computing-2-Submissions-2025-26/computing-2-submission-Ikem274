@@ -1,7 +1,7 @@
-import * as R from 'ramda';
-import Imperium from '../Imperium.js';
-import gameConfig from '../gameConfig.js';
-import { throw_if_invalid, display_state } from './TestHelpers.js';
+import * as R from "ramda";
+import Imperium from "../Imperium.js";
+import gameConfig from "../gameConfig.js";
+import { throw_if_invalid, display_state } from "./TestHelpers.js";
 
 const get_base_state = function () {
     const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
@@ -18,7 +18,7 @@ describe("Student Finance", function () {
         Then they collect the Student Finance money.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 0, 'position']), 26, state);
+            state = R.set(R.lensPath(["players", 0, "position"]), 26, state);
             throw_if_invalid(state);
 
             const new_state = Imperium.move_player(state, 4);
@@ -39,7 +39,7 @@ describe("Student Finance", function () {
         Then they collect the Student Finance money.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 0, 'position']), 26, state);
+            state = R.set(R.lensPath(["players", 0, "position"]), 26, state);
 
             const steps = Imperium.total_tiles - 26 + 1;
             const new_state = Imperium.move_player(state, steps);

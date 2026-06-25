@@ -1,7 +1,7 @@
-import * as R from 'ramda';
-import Imperium from '../Imperium.js';
-import gameConfig from '../gameConfig.js';
-import { throw_if_invalid, display_state } from './TestHelpers.js';
+import * as R from "ramda";
+import Imperium from "../Imperium.js";
+import gameConfig from "../gameConfig.js";
+import { throw_if_invalid, display_state } from "./TestHelpers.js";
 
 const get_base_state = function () {
     const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
@@ -17,8 +17,8 @@ describe("Trading", function () {
         Then money and properties are exchanged and the total economy remains balanced.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 0, 'properties']), [2], state); // P1 owns Huxley
-            state = R.set(R.lensPath(['players', 1, 'properties']), [4], state); // P2 owns Westbound
+            state = R.set(R.lensPath(["players", 0, "properties"]), [2], state); // P1 owns Huxley
+            state = R.set(R.lensPath(["players", 1, "properties"]), [4], state); // P2 owns Westbound
             throw_if_invalid(state);
 
             const offer = {
@@ -50,7 +50,7 @@ describe("Trading", function () {
         Then it should fail and return undefined.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 0, 'properties']), [2], state);
+            state = R.set(R.lensPath(["players", 0, "properties"]), [2], state);
 
             const offer = {
                 moneyFromA: 0,

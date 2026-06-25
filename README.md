@@ -13,9 +13,8 @@ AI was used to:
 
 
 Other References:
-
 - Icons were added using the Windows emoji picker (Windows + .).
-- The Fisher–Yates shuffle algorithm was used for randomising arrays, based on examples from online sources such as https://dev.to/tanvir_azad/fisher-yates-shuffle-the-right-way-to-randomize-an-array-4d2p. This AI was then used to help turn this into a pure function.
+- The Fisher–Yates shuffle algorithm was used for randomising arrays, based on examples from online sources such as https://dev.to/tanvir_azad/fisher-yates-shuffle-the-right-way-to-randomize-an-array-4d2p. AI was then used to help turn this into a pure function, and helped in the unittests which required randomising the dice rolls.
 - The project Zombie Siege was used as a reference when writing unit tests, especially for the TestHelpers file.
 - The Monopolybackground.svg was referenced from https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.primevideo.com%2Fdetail%2F0LRJ9MO3KNLFCJ9F49RSTH1DRI&ved=0CBYQjRxqFwoTCMjTnYeMopUDFQAAAAAdAAAAABAL&opi=89978449
 

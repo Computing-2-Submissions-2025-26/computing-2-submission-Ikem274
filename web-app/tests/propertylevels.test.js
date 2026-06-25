@@ -1,7 +1,7 @@
-import * as R from 'ramda';
-import Imperium from '../Imperium.js';
-import gameConfig from '../gameConfig.js';
-import { throw_if_invalid, display_state } from './TestHelpers.js';
+import * as R from "ramda";
+import Imperium from "../Imperium.js";
+import gameConfig from "../gameConfig.js";
+import { throw_if_invalid, display_state } from "./TestHelpers.js";
 
 const get_base_state = function () {
     const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
@@ -17,7 +17,7 @@ describe("Upgrading Properties", function () {
         Then their money decreases by the upgrade cost and the property level increases by 1.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 0, 'properties']), [2], state); // Huxley
+            state = R.set(R.lensPath(["players", 0, "properties"]), [2], state); // Huxley
             throw_if_invalid(state);
 
             const new_state = Imperium.upgrade_property(state, 2);
@@ -41,7 +41,7 @@ describe("Upgrading Properties", function () {
         Then the state should remain unchanged.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 0, 'properties']), [5], state); // Only Blackett
+            state = R.set(R.lensPath(["players", 0, "properties"]), [5], state); // Only Blackett
 
             const new_state = Imperium.upgrade_property(state, 5);
 
@@ -61,8 +61,8 @@ describe("Downgrading Properties", function () {
         Then their money increases by the sell price and the property level decreases by 1.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 0, 'properties']), [2], state); // Huxley
-            state = R.set(R.lensPath(['propertyLevels', "2"]), 2, state);
+            state = R.set(R.lensPath(["players", 0, "properties"]), [2], state); // Huxley
+            state = R.set(R.lensPath(["propertyLevels", "2"]), 2, state);
             throw_if_invalid(state);
 
             const new_state = Imperium.sell_property_upgrade(state, 2);
@@ -84,7 +84,7 @@ describe("Downgrading Properties", function () {
         Then the state should remain unchanged.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 0, 'properties']), [2], state);
+            state = R.set(R.lensPath(["players", 0, "properties"]), [2], state);
 
             const new_state = Imperium.sell_property_upgrade(state, 2);
 

@@ -1,7 +1,7 @@
-import * as R from 'ramda';
-import Imperium from '../Imperium.js';
-import gameConfig from '../gameConfig.js';
-import { throw_if_invalid, display_state } from './TestHelpers.js';
+import * as R from "ramda";
+import Imperium from "../Imperium.js";
+import gameConfig from "../gameConfig.js";
+import { throw_if_invalid, display_state } from "./TestHelpers.js";
 
 const get_base_state = function () {
     const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
@@ -31,8 +31,8 @@ describe("Paying Rent", function () {
         Then base rent is deducted from Player 1 and added to Player 2.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 1, 'properties']), [5], state); // Blackett
-            state = R.set(R.lensPath(['players', 0, 'position']), 5, state);
+            state = R.set(R.lensPath(["players", 1, "properties"]), [5], state); // Blackett
+            state = R.set(R.lensPath(["players", 0, "position"]), 5, state);
             throw_if_invalid(state);
 
             const new_state = Imperium.pay_rent(state, 0, 1, 6);
@@ -47,8 +47,8 @@ describe("Paying Rent", function () {
         Then double the base rent is deducted from Player 1 and added to Player 2.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 1, 'properties']), [5, 7], state); // Light Blue set
-            state = R.set(R.lensPath(['players', 0, 'position']), 5, state);
+            state = R.set(R.lensPath(["players", 1, "properties"]), [5, 7], state); // Light Blue set
+            state = R.set(R.lensPath(["players", 0, "position"]), 5, state);
 
             const expected_rent = Imperium.calculate_rent(state, 5, state.players[1]);
             if (expected_rent !== 12) {
@@ -69,8 +69,8 @@ When the landing action is resolved,
 Then they should pay no rent and the state remains unchanged.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 0, 'properties']), [5], state);
-            state = R.set(R.lensPath(['players', 0, 'position']), 5, state);
+            state = R.set(R.lensPath(["players", 0, "properties"]), [5], state);
+            state = R.set(R.lensPath(["players", 0, "position"]), 5, state);
 
             const result = Imperium.handle_landing(state);
 

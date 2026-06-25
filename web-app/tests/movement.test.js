@@ -1,7 +1,7 @@
-import * as R from 'ramda';
-import Imperium from '../Imperium.js';
-import gameConfig from '../gameConfig.js';
-import { throw_if_invalid, display_state } from './TestHelpers.js';
+import * as R from "ramda";
+import Imperium from "../Imperium.js";
+import gameConfig from "../gameConfig.js";
+import { throw_if_invalid, display_state } from "./TestHelpers.js";
 
 const get_base_state = function () {
     const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
@@ -21,7 +21,7 @@ describe("Taking a Turn & Movement", function () {
             const new_state = Imperium.move_player(state, 5);
             throw_if_invalid(new_state);
 
-            if (new_state.players[0].position !== 6 || new_state.phase !== 'landed') {
+            if (new_state.players[0].position !== 6 || new_state.phase !== "landed") {
                 throw new Error(
                     "Player did not move to the expected position or update phase: " +
                     display_state(new_state)
@@ -36,7 +36,7 @@ describe("Taking a Turn & Movement", function () {
         Then their position wraps around to the beginning correctly.`,
         function () {
             let state = get_base_state();
-            state = R.set(R.lensPath(['players', 0, 'position']), 26, state);
+            state = R.set(R.lensPath(["players", 0, "position"]), 26, state);
 
             const new_state = Imperium.move_player(state, 4); // Lands on tile 2
 

@@ -1,7 +1,7 @@
-import * as R from 'ramda';
-import Imperium from '../Imperium.js';
-import gameConfig from '../gameConfig.js';
-import { throw_if_invalid, display_state } from './TestHelpers.js';
+import * as R from "ramda";
+import Imperium from "../Imperium.js";
+import gameConfig from "../gameConfig.js";
+import { throw_if_invalid, display_state } from "./TestHelpers.js";
 
 const get_base_state = function () {
     const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
@@ -20,7 +20,7 @@ describe("Event Cards", function () {
             // Set player on an event tile
             state.players[0].position = 6;
 
-            // Find a real 'gain' card from the gameConfig
+            // Find a real "gain" card from the gameConfig
             const gainCard = gameConfig.event_cards.find(function (c) {
                 return c.effect.type === "gain";
             });
@@ -51,7 +51,7 @@ describe("Event Cards", function () {
             // Set player on an event tile
             state.players[0].position = 6;
 
-            // Find a real 'lose' card from the gameConfig
+            // Find a real "lose" card from the gameConfig
             const loseCard = gameConfig.event_cards.find(function (c) {
                 return c.effect.type === "lose";
             });
@@ -82,7 +82,7 @@ describe("Event Cards", function () {
             // Set player on an event tile
             state.players[0].position = 6;
 
-            // Find a real 'move' card from the gameConfig
+            // Find a real "move" card from the gameConfig
             const moveCard = gameConfig.event_cards.find(function (c) {
                 return c.effect.type === "move";
             });

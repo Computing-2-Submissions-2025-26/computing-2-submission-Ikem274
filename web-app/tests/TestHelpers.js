@@ -1,5 +1,5 @@
-import * as R from 'ramda';
-import Imperium from '../Imperium.js';
+import * as R from "ramda";
+import Imperium from "../Imperium.js";
 
 const DISPLAY_MODE = "to_string";
 
@@ -9,7 +9,7 @@ export const display_functions = {
         let out = `Round: ${state.round} | Phase: ${state.phase} | Current Player: ${state.currentPlayerIndex}\n`;
         out += "Players:\n";
         state.players.forEach(p => {
-            out += `  [${p.id}] ${p.name} (${p.emoji}) - Money: £${p.money} | Pos: ${p.position} | Props: [${p.properties.join(',')}] | Bankrupt: ${p.isBankrupt} | GapYear: ${p.inGapYear}\n`;
+            out += `  [${p.id}] ${p.name} (${p.emoji}) - Money: £${p.money} | Pos: ${p.position} | Props: [${p.properties.join(",")}] | Bankrupt: ${p.isBankrupt} | GapYear: ${p.inGapYear}\n`;
         });
         if (state.propertyLevels && Object.keys(state.propertyLevels).length > 0) {
             out += `Property Levels: ${JSON.stringify(state.propertyLevels)}\n`;
@@ -38,7 +38,7 @@ export const display_state = function (state) {
  * @throws if the state fails any of the above conditions.
  */
 export const throw_if_invalid = function (state) {
-    if (!state || typeof state !== 'object') {
+    if (!state || typeof state !== "object") {
         throw new Error("The state is not an object: " + display_state(state));
     }
 
@@ -55,7 +55,7 @@ export const throw_if_invalid = function (state) {
     let ownedProperties = new Set();
 
     state.players.forEach(player => {
-        if (typeof player.money !== 'number' || isNaN(player.money)) {
+        if (typeof player.money !== "number" || isNaN(player.money)) {
             throw new Error(`Player ${player.id} has invalid money: ` + display_state(state));
         }
         if (player.position < 1 || player.position > totalTiles) {

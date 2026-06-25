@@ -1,7 +1,7 @@
-import * as R from 'ramda';
-import Imperium from '../Imperium.js';
-import gameConfig from '../gameConfig.js';
-import { throw_if_invalid, display_state } from './TestHelpers.js';
+import * as R from "ramda";
+import Imperium from "../Imperium.js";
+import gameConfig from "../gameConfig.js";
+import { throw_if_invalid, display_state } from "./TestHelpers.js";
 
 const getBaseState = function () {
     const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
@@ -17,7 +17,7 @@ describe("Buying Properties", function () {
         Then their money is reduced by the price and they gain the property.`,
         function () {
             let state = getBaseState();
-            state = R.set(R.lensPath(['players', 0, 'position']), 2, state); // Huxley
+            state = R.set(R.lensPath(["players", 0, "position"]), 2, state); // Huxley
             throw_if_invalid(state);
 
             const newState = Imperium.buy_property(state);
@@ -39,8 +39,8 @@ describe("Buying Properties", function () {
         Then the state should remain unchanged.`,
         function () {
             let state = getBaseState();
-            state = R.set(R.lensPath(['players', 0, 'position']), 2, state);
-            state = R.set(R.lensPath(['players', 0, 'money']), 10, state);
+            state = R.set(R.lensPath(["players", 0, "position"]), 2, state);
+            state = R.set(R.lensPath(["players", 0, "money"]), 10, state);
 
             const new_state = Imperium.buy_property(state);
 

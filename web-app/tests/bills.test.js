@@ -1,7 +1,7 @@
-import * as R from 'ramda';
-import Imperium from '../Imperium.js';
-import gameConfig from '../gameConfig.js';
-import { throw_if_invalid, display_state } from './TestHelpers.js';
+import * as R from "ramda";
+import Imperium from "../Imperium.js";
+import gameConfig from "../gameConfig.js";
+import { throw_if_invalid, display_state } from "./TestHelpers.js";
 
 const getBaseState = function () {
     const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
@@ -17,7 +17,7 @@ describe("Bills Due", function () {
         Then they should pay 10% of their money.`,
         function () {
             let state = getBaseState();
-            state = R.set(R.lensPath(['players', 0, 'position']), 3, state);
+            state = R.set(R.lensPath(["players", 0, "position"]), 3, state);
             throw_if_invalid(state);
 
             const result = Imperium.handle_landing(state);
@@ -39,7 +39,7 @@ describe("Bills Due", function () {
         Then they should pay 20% of their money.`,
         function () {
             let state = getBaseState();
-            state = R.set(R.lensPath(['players', 0, 'position']), 27, state);
+            state = R.set(R.lensPath(["players", 0, "position"]), 27, state);
 
             const result = Imperium.handle_landing(state);
 
