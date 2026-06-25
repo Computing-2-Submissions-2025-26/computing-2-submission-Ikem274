@@ -643,7 +643,7 @@ Imperium.buy_property = function (state) {
 };
 
 /**
- * Upgrades a property (adds a house) if the player is eligible and
+ * Upgrades a property (adds a degree) if the player is eligible and
  * has sufficient funds.
  * @memberof Imperium
  * @function
@@ -700,7 +700,7 @@ Imperium.upgrade_property = function (state, tileId) {
 };
 
 /**
- * Sells a property upgrade (house) back to the bank for the sell price.
+ * Sells a property upgrade (degree) back for the sell price.
  * @memberof Imperium
  * @function
  * @param {Imperium.GameState} state The current game state.
