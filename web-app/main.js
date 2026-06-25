@@ -404,27 +404,6 @@ const renderUpgradeIndicators = function () {
         return;
     }
 
-    const scrollSvg = `<svg width="14" height="14"
-    viewBox="0 0 24 24" fill="none"`
-        + ` stroke="#d4a017" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round"`
-        + ` style="margin:0 1px; filter: drop-shadow
-        (0 1px 1px rgba(0,0,0,0.4));">`
-        + `<path d="M14 2H6a2 2 0 0 0-2 2v16a2
-        2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>`
-        + `<polyline points="14 2 14 8 20 8"/>`
-        + `<line x1="16" y1="13" x2="8" y2="13"/>`
-        + `<line x1="16" y1="17" x2="8" y2="17"/>`
-        + `<polyline points="10 9 9 9 8 9"/></svg>`;
-
-    const certSvg = `<svg width="18" height="18"
-    viewBox="0 0 24 24" fill="none"`
-        + ` stroke="#e74c3c" stroke-width="2" stroke-linecap="round"
-        stroke-linejoin="round"`
-        + ` style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));">`
-        + `<circle cx="12" cy="8" r="6"/>`
-        + `<path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>`;
-
     R.forEachObjIndexed(function (level, tileId) {
         if (level <= 0) {
             return;
@@ -437,11 +416,13 @@ const renderUpgradeIndicators = function () {
 
         const indicator = document.createElement("div");
         indicator.className = "tile-upgrade-indicator";
+        indicator.style.fontSize = "16px";
+        indicator.style.lineHeight = "1";
 
         if (level === 3) {
-            indicator.innerHTML = certSvg;
+            indicator.innerHTML = "🎓";
         } else {
-            indicator.innerHTML = scrollSvg.repeat(level);
+            indicator.innerHTML = "📜".repeat(level);
         }
         tileEl.appendChild(indicator);
     }, gameState.propertyLevels);
@@ -697,42 +678,44 @@ const animateDice = function (finalValue) {
  * @returns {Promise<void>}
  */
 function animateMovement(steps) {
-    let player = Imperium.current_player(gameState);
-    let tempPos = player.position;
+    return new Promise(function (resolve) {
+        let player = Imperium.current_player(gameState);
+        let tempPos = player.position;
 
-    let i;
+        let i = 0;
 
-    function stepLoop() {
-        if (i >= steps) {
-            return;
+        function stepLoop() {
+            if (i >= steps) {
+                resolve();
+                return;
+            }
+
+            tempPos = tempPos + 1;
+
+            if (tempPos > Imperium.total_tiles) {
+                tempPos = 1;
+            }
+
+            let updatePosition = R.over(
+                R.lensProp("position"),
+                R.always(tempPos)
+            );
+
+            gameState = R.over(
+                R.lensProp("players"),
+                R.adjust(gameState.currentPlayerIndex, updatePosition),
+                gameState
+            );
+
+            renderTokensOnBoard();
+
+            i = i + 1;
+
+            setTimeout(stepLoop, 200);
         }
 
-        tempPos = tempPos + 1;
-
-        if (tempPos > Imperium.total_tiles) {
-            tempPos = 1;
-        }
-
-        let updatePosition = R.over(
-            R.lensProp("position"),
-            R.always(tempPos)
-        );
-
-        gameState = R.over(
-            R.lensProp("players"),
-            R.adjust(gameState.currentPlayerIndex, updatePosition),
-            gameState
-        );
-
-        renderTokensOnBoard();
-
-        i = i + 1;
-
-        setTimeout(stepLoop, 200);
-    }
-
-    i = 0;
-    stepLoop();
+        stepLoop();
+    });
 }
 
 // ------------------ Landing Mechanics ------------------
@@ -799,7 +782,7 @@ const handleLandingUI = function () {
  * @param {string} html
  * @param {boolean} transparent
  */
-const openModal = function (html, transparent = false) {
+const openModal = function (html, transparent = false, isLarge = false) {
     const overlay = getEl("modal-overlay");
     const content = getEl("modal-content");
     content.innerHTML = html;
@@ -808,6 +791,12 @@ const openModal = function (html, transparent = false) {
         content.classList.add("modal-content--transparent");
     } else {
         content.classList.remove("modal-content--transparent");
+    }
+
+    if (isLarge) {
+        content.classList.add("modal-content--large");
+    } else {
+        content.classList.remove("modal-content--large");
     }
 
     overlay.classList.remove("hidden");
@@ -884,19 +873,19 @@ const showPropertyCard = function (tileId, infoOnly = false) {
     let buttonsHtml = "";
     if (canBuy) {
         buttonsHtml += `<button class="action-btn
-        action-btn--buy"id="modal-buy"
+        action-btn--buy" id="modal-buy"
         style="margin-top: 10px; min-width: 120px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Buy — £${tile.price}</button>`;
     }
     if (canUpgrade) {
         buttonsHtml += `<button class="action-btn
-        action-btn--buy"id="modal-upgrade"
+        action-btn--upgrade" id="modal-upgrade"
         style="margin-top: 10px; min-width: 120px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Upgrade — £${tile.upgradeCost}</button>`;
     }
     if (canDowngrade) {
         buttonsHtml += `<button class="action-btn
-        action-btn--buy" id="modal-downgrade"
+        action-btn--downgrade" id="modal-downgrade"
         style="margin-top: 10px; min-width: 120px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.4);">Downgrade +£${tile.sellPrice}</button>`;
     }
@@ -1386,11 +1375,10 @@ const openTradeOfferBuilder = function (fromIndex, toIndex) {
     const playerA = gameState.players[fromIndex];
     const playerB = gameState.players[toIndex];
 
-    // Helper to render property checkboxes
     const renderProps = function (player, prefix) {
         if (player.properties.length === 0) {
             return `<p style="font-size: 0.8rem;
-            color: var(--text-muted);">No properties</p>`;
+            color: var(--text-muted); text-align: center;">No properties</p>`;
         }
         return player.properties.map(function (tileId) {
             let data = Imperium.get_tile_data(tileId);
@@ -1400,24 +1388,25 @@ const openTradeOfferBuilder = function (fromIndex, toIndex) {
 
             let disabledText = (
                 level > 0 ?
-                    "<span style=\"color:var(--text-danger);" +
+                    " <span style=\"color:var(--text-danger);" +
                     "font-size:0.7rem;\">" +
                     "(Upgraded)</span>" :
                     ""
             );
 
             return (
-                "<label style=\"display:block; margin:4px 0; " +
-                "font-size:0.9rem; text-align:left; " +
-                "opacity:" + (level > 0 ? 0.5 : 1) + ";\">" +
+                "<label class=\"trade-property-btn\" " +
+                "style=\"opacity:" + (level > 0 ? 0.5 : 1) + ";\">" +
 
                 "<input type=\"checkbox\" " +
                 "name=\"" + prefix + "-props\" " +
                 "value=\"" + tileId + "\" " +
+                "style=\"display:none;\" " +
                 disabled + ">" +
 
-                data.name + " " +
-                disabledText +
+                "<div class=\"trade-property-btn-content\">" +
+                data.name + disabledText +
+                "</div>" +
 
                 "</label>"
             );
@@ -1428,40 +1417,40 @@ const openTradeOfferBuilder = function (fromIndex, toIndex) {
     <div style="padding: 20px; width: 100%; min-width: 480px;
     color: var(--text-primary); box-sizing: border-box;">
         <h2 style="margin-top:0; text-align:center;">Trade Offer</h2>
-        <div style="display: flex; gap: 20px; flex-wrap: nowrap;">
+        <div style="display: flex; gap: 40px; flex-wrap: nowrap;">
             <!-- Player A -->
-            <div style="flex: 1; padding: 10px; background: var(--bg-panel);
+            <div style="flex: 1; padding: 20px; background: var(--bg-panel);
             border-radius: 8px;">
-                <h3 style="margin-top:0; color: var(--accent);">${playerA.name} Offers:</h3>
-                <label style="display:block; margin-bottom: 10px;
+                <h3 style="margin-top:0; margin-bottom:15px; font-size:1.3rem; color: var(--accent);">${playerA.name} Offers:</h3>
+                <label style="display:block; margin-bottom: 20px; font-size:1.05rem;
                 font-weight: 600;">
                     Money (£): <br/>
                     <input type="number" id="trade-money-a" class="trade-input"
                     value="0" min="0" max="${playerA.money}"
-                    style="width: 100%;"><small
-                    style="color: var(--text-muted);">Max: £${playerA.money}</small>
+                    style="width: 100%; margin-top:8px;"><small
+                    style="color: var(--text-muted); display:block; margin-top:6px; font-size:0.85rem;">Max: £${playerA.money}</small>
                 </label>
-                <div style="font-weight: 600;">Properties:</div>
-                <div style="max-height: 150px; overflow-y: auto;
-                background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+                <div style="font-weight: 600; font-size:1.05rem; margin-bottom:10px;">Properties:</div>
+                <div style="max-height: 200px; overflow-y: auto;
+                background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
                     ${renderProps(playerA, "a")}
                 </div>
             </div>
             <!-- Player B -->
-            <div style="flex: 1; padding: 10px;
+            <div style="flex: 1; padding: 20px;
             background: var(--bg-panel); border-radius: 8px;">
-                <h3 style="margin-top:0; color: var(--accent);">${playerB.name} Offers:</h3>
-                <label style="display:block; margin-bottom: 10px;
+                <h3 style="margin-top:0; margin-bottom:15px; font-size:1.3rem; color: var(--accent);">${playerB.name} Offers:</h3>
+                <label style="display:block; margin-bottom: 20px; font-size:1.05rem;
                 font-weight: 600;">
                     Money (£): <br/>
                     <input type="number" id="trade-money-b" class="trade-input"
                     value="0" min="0" max="${playerB.money}"
-                    style="width: 100%;"><small
-                    style="color: var(--text-muted);">Max: £${playerB.money}</small>
+                    style="width: 100%; margin-top:8px;"><small
+                    style="color: var(--text-muted); display:block; margin-top:6px; font-size:0.85rem;">Max: £${playerB.money}</small>
                 </label>
-                <div style="font-weight: 600;">Properties:</div>
-                <div style="max-height: 150px; overflow-y: auto;
-                background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+                <div style="font-weight: 600; font-size:1.05rem; margin-bottom:10px;">Properties:</div>
+                <div style="max-height: 200px; overflow-y: auto;
+                background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
                     ${renderProps(playerB, "b")}
                 </div>
             </div>
@@ -1474,7 +1463,7 @@ const openTradeOfferBuilder = function (fromIndex, toIndex) {
         </div>
     </div>`;
 
-    openModal(html, false);
+    openModal(html, false, true);
 
     getEl("trade-cancel-builder").addEventListener("click", closeModal);
     getEl("trade-confirm").addEventListener("click", function () {

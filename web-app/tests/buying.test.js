@@ -22,7 +22,7 @@ describe("Buying Properties", function () {
             const newState = Imperium.buy_property(state);
             throw_if_invalid(newState);
 
-            const player = new_state.players[0];
+            const player = newState.players[0];
             if (player.money !== 1200 - 150 || !player.properties.includes(2)) {
                 throw new Error(
                     "Player did not pay correctly or did not receive the property: " +

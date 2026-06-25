@@ -6,12 +6,13 @@ References:
 AI was used to:
 - Help find specific ramda functions that could be used to make the code clearer
 - To give a base UI so I could change and start on the Game API without having to worry about the looks straight off the bat.
-- Helped in creating the complex parts of the main.js but barely for the Imperium.js file (where the core logic is). I was mostly just asking how to connect the buttons to my functions and stuff like that, and how to make it more interactive or have more dynamic features. However this was not used for the Imperium.js file much.
+- Helped in creating the complex parts of the main.js but barely for the Imperium.js file (where the core logic is). I was mostly just asking how to connect the buttons to my functions and stuff like that, and how to make it more interactive or have more dynamic features and animations. However this was not used for the Imperium.js file much.
 - Used to help create the trading properties/money logic
 - Creating a script in the package.json file so I could run the unit tests on my files.
-- Debugging the json file to get my run documentation to work.  
+- Debugging the json file to get my run documentation to work. 
 
-
+Icons were found using the windows + . button and implemented into the web app 
+For the shuffling the Fisher Yates method was used which can be seen in multiple websites including: https://dev.to/tanvir_azad/fisher-yates-shuffle-the-right-way-to-randomize-an-array-4d2p
 Zombie Siege was referred to when creating the unittests, especially for the TestHelpers file  
 
 ## Checklist
