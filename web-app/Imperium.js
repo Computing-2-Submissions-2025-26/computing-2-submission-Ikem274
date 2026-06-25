@@ -62,7 +62,8 @@ const Imperium = Object.create(null);
  * @typedef {Object} TileData
  * @property {string} name The name of the tile.
  * @property {string} type The type of the tile.
- * @property {string|undefined} colourGroup The colour group the tile belongs to.
+ * @property {string|undefined} colourGroup The colour group the
+ *     tile belongs to.
  * @property {string} description The description of the tile.
  * @property {number} [price] The initial purchase price.
  * @property {number} [upgradeCost] The cost to upgrade a property.
@@ -95,7 +96,8 @@ Object.assign(Imperium, gameConfig);
 
 /**
  * Randomises the order of elements in a given collection.
- * Used for shuffling the event card deck or randomising the starting turn order.
+ * Used for shuffling the event card deck
+ * or randomising the starting turn order.
  * @memberof Imperium
  * @function
  * @param {Array} array The array to shuffle.
@@ -383,8 +385,8 @@ Imperium.move_player = function (state, steps) {
 
     const moneyToAdd = (
         (passedStudentFinance && !state.firstMove)
-            ? Imperium.student_finance_money
-            : 0
+        ? Imperium.student_finance_money
+        : 0
     );
 
     const movementUpdates = {
@@ -397,7 +399,7 @@ Imperium.move_player = function (state, steps) {
         state.currentPlayerIndex,
         movementUpdates
     );
-    const markLanded = R.mergeLeft({ phase: "landed", firstMove: false });
+    const markLanded = R.mergeLeft({phase: "landed", firstMove: false});
 
     return markLanded(stateAfterMove);
 };
@@ -416,7 +418,7 @@ Imperium.handle_landing = function (state) {
     const tile = Imperium.get_tile_data(player.position);
 
     if (!tile) {
-        return { state, action: { type: "none" } };
+        return {state, action: {type: "none"}};
     }
 
     if (tile.type === "Student_Finance") {
@@ -433,17 +435,17 @@ Imperium.handle_landing = function (state) {
         const owner = Imperium.find_owner(state, player.position);
 
         if (!owner) {
-            const markPhase = R.mergeLeft({ phase: "landed" });
+            const markPhase = R.mergeLeft({phase: "landed"});
             return {
                 state: markPhase(state),
-                action: { type: "property_unowned", tileId: player.position }
+                action: {type: "property_unowned", tileId: player.position}
             };
         }
 
         if (owner.id === player.id) {
             return {
                 state,
-                action: { type: "property_owned_self", tileId: player.position }
+                action: {type: "property_owned_self", tileId: player.position}
             };
         }
 
@@ -478,7 +480,7 @@ Imperium.handle_landing = function (state) {
         const taxRate = R.propOr(0.10, "taxRate", tile);
         const taxAmount = Math.floor(R.multiply(player.money, taxRate));
 
-        const deductTax = { money: R.subtract(player.money, taxAmount) };
+        const deductTax = {money: R.subtract(player.money, taxAmount)};
         const stateAfterTax = updatePlayer(
             state,
             state.currentPlayerIndex,
@@ -487,7 +489,7 @@ Imperium.handle_landing = function (state) {
 
         return {
             state: stateAfterTax,
-            action: { type: "tax", amount: taxAmount, tileName: tile.name }
+            action: {type: "tax", amount: taxAmount, tileName: tile.name}
         };
     }
 
@@ -495,7 +497,7 @@ Imperium.handle_landing = function (state) {
         const eventResult = Imperium.draw_event_card(state);
         return {
             state: eventResult.state,
-            action: { type: "event", card: eventResult.card }
+            action: {type: "event", card: eventResult.card}
         };
     }
 
@@ -506,19 +508,19 @@ Imperium.handle_landing = function (state) {
         );
         return {
             state: stateAfterGapYear,
-            action: { type: "go_to_gap_year" }
+            action: {type: "go_to_gap_year"}
         };
     }
 
     if (tile.type === "gap_year") {
-        return { state, action: { type: "gap_year_visiting" } };
+        return {state, action: {type: "gap_year_visiting"}};
     }
 
     if (tile.type === "Student_Union") {
-        return { state, action: { type: "Student_Union" } };
+        return {state, action: {type: "Student_Union"}};
     }
 
-    return { state, action: { type: "none" } };
+    return {state, action: {type: "none"}};
 };
 
 /**
@@ -527,7 +529,8 @@ Imperium.handle_landing = function (state) {
  * @function
  * @param {Imperium.GameState} state The current game state.
  * @param {number} tileId The ID of the tile to check.
- * @returns {Imperium.Player|undefined} The owner player, or undefined if unowned.
+ * @returns {Imperium.Player|undefined} The owner player,
+ * or undefined if unowned.
  */
 Imperium.find_owner = function (state, tileId) {
     const searchForOwner = R.pipe(
@@ -756,8 +759,8 @@ Imperium.end_turn = function (state) {
     const nextIndex = (state.currentPlayerIndex + 1) % playersCount;
     const newRound = (
         nextIndex <= state.currentPlayerIndex
-            ? state.round + 1
-            : state.round
+        ? state.round + 1
+        : state.round
     );
 
     const advanceToNextTurn = R.mergeLeft({
@@ -804,7 +807,7 @@ Imperium.handle_gap_year_turn = function (state, choice) {
 
     if (choice === "pay") {
         if (player.money < Imperium.gap_year_buyout) {
-            return { state, escaped: false, diceValue: undefined };
+            return {state, escaped: false, diceValue: undefined};
         }
 
         const buyoutUpdates = {
@@ -833,7 +836,7 @@ Imperium.handle_gap_year_turn = function (state, choice) {
     const diceValue = Math.floor(Math.random() * 6) + 1;
 
     if (diceValue === Imperium.gap_year_escape_number) {
-        const escapeUpdates = { inGapYear: false, gapYearTurns: 0 };
+        const escapeUpdates = {inGapYear: false, gapYearTurns: 0};
         const stateAfterEscape = updatePlayer(
             state,
             playerIndex,
@@ -848,17 +851,17 @@ Imperium.handle_gap_year_turn = function (state, choice) {
             diceValue
         );
 
-        return { state: stateAfterMove, escaped: true, diceValue };
+        return {state: stateAfterMove, escaped: true, diceValue};
     }
 
     if (player.gapYearTurns > 0) {
-        const releaseUpdates = { inGapYear: false, gapYearTurns: 0 };
+        const releaseUpdates = {inGapYear: false, gapYearTurns: 0};
         const stateAfterRelease = updatePlayer(
             state,
             playerIndex,
             releaseUpdates
         );
-        const diceRecorded2 = R.mergeLeft({ lastDiceValue: diceValue });
+        const diceRecorded2 = R.mergeLeft({lastDiceValue: diceValue});
 
         return {
             state: diceRecorded2(stateAfterRelease),
@@ -867,11 +870,11 @@ Imperium.handle_gap_year_turn = function (state, choice) {
         };
     }
 
-    const missedTurnUpdates = { gapYearTurns: R.add(1, player.gapYearTurns) };
+    const missedTurnUpdates = {gapYearTurns: R.add(1, player.gapYearTurns)};
     const stateAfterMiss = updatePlayer(state, playerIndex, missedTurnUpdates);
-    const diceRecorded3 = R.mergeLeft({ lastDiceValue: diceValue });
+    const diceRecorded3 = R.mergeLeft({lastDiceValue: diceValue});
 
-    return { state: diceRecorded3(stateAfterMiss), escaped: false, diceValue };
+    return {state: diceRecorded3(stateAfterMiss), escaped: false, diceValue};
 };
 
 /**
@@ -889,13 +892,13 @@ Imperium.draw_event_card = function (state) {
 
     const deck = (
         deckIsEmpty
-            ? Imperium.shuffle_array([...Imperium.event_cards], Math.random)
-            : state.eventDeck
+        ? Imperium.shuffle_array([...Imperium.event_cards], Math.random)
+        : state.eventDeck
     );
     const cardIndex = (
         deckIsEmpty
-            ? 0
-            : state.eventDeckIndex
+        ? 0
+        : state.eventDeckIndex
     );
     const card = R.nth(cardIndex, deck);
 
@@ -913,14 +916,14 @@ Imperium.draw_event_card = function (state) {
             return updatePlayer(
                 currentState,
                 currentState.currentPlayerIndex,
-                { money: player.money + card.effect.amount }
+                {money: player.money + card.effect.amount}
             );
         }
         if (card.effect.type === "lose") {
             return updatePlayer(
                 currentState,
                 currentState.currentPlayerIndex,
-                { money: player.money - card.effect.amount }
+                {money: player.money - card.effect.amount}
             );
         }
         if (card.effect.type === "move") {
@@ -933,8 +936,8 @@ Imperium.draw_event_card = function (state) {
 
             const moneyToAdd = (
                 passedStudentFinance
-                    ? Imperium.student_finance_money
-                    : 0
+                ? Imperium.student_finance_money
+                : 0
             );
             const moveUpdates = {
                 position: targetTile,
@@ -957,7 +960,7 @@ Imperium.draw_event_card = function (state) {
         return currentState;
     };
 
-    return { state: applyEffect(baseState), card };
+    return {state: applyEffect(baseState), card};
 };
 
 /**
