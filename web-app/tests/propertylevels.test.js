@@ -1,10 +1,11 @@
 import * as R from 'ramda';
 import Imperium from '../Imperium.js';
+import gameConfig from '../gameConfig.js';
 import { throw_if_invalid, display_state } from './TestHelpers.js';
 
 const get_base_state = function () {
-    const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
-    const p2 = { id: 2, name: "P2", emoji: "🤖", colour: "#00f", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+    const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
+    const p2 = Imperium.create_player(2, "P2", "🤖", "#00f");
     let state = Imperium.create_game_state([p1, p2]);
     return R.set(R.lensProp("currentPlayerIndex"), 0, state);
 };
@@ -26,7 +27,7 @@ describe("Upgrading Properties", function () {
             const new_level = new_state.propertyLevels["2"];
 
             // Upgrade cost for Huxley is 75
-            if (p1.money !== 1200 - 75 || new_level !== 1) {
+            if (p1.money !== gameConfig.starting_money - 75 || new_level !== 1) {
                 throw new Error(
                     "Upgrading did not deduct correct money or increment the level: " +
                     display_state(new_state)
@@ -44,7 +45,7 @@ describe("Upgrading Properties", function () {
 
             const new_state = Imperium.upgrade_property(state, 5);
 
-            if (new_state.players[0].money !== 1200 || new_state.propertyLevels["5"]) {
+            if (new_state.players[0].money !== gameConfig.starting_money || new_state.propertyLevels["5"]) {
                 throw new Error(
                     "Player was able to upgrade without owning the full set: " +
                     display_state(new_state)
@@ -68,7 +69,7 @@ describe("Downgrading Properties", function () {
             throw_if_invalid(new_state);
 
             const p1 = new_state.players[0];
-            if (p1.money !== 1250 || new_state.propertyLevels["2"] !== 1) {
+            if (p1.money !== gameConfig.starting_money + 50 || new_state.propertyLevels["2"] !== 1) {
                 throw new Error(
                     "Downgrading did not properly adjust money or property level: " +
                     display_state(new_state)
@@ -87,7 +88,7 @@ describe("Downgrading Properties", function () {
 
             const new_state = Imperium.sell_property_upgrade(state, 2);
 
-            if (new_state.players[0].money !== 1200) {
+            if (new_state.players[0].money !== gameConfig.starting_money) {
                 throw new Error(
                     "Player was able to sell an upgrade on a level 0 property: " +
                     display_state(new_state)

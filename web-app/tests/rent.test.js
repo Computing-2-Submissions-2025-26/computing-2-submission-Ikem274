@@ -1,10 +1,11 @@
 import * as R from 'ramda';
 import Imperium from '../Imperium.js';
+import gameConfig from '../gameConfig.js';
 import { throw_if_invalid, display_state } from './TestHelpers.js';
 
 const get_base_state = function () {
-    const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
-    const p2 = { id: 2, name: "P2", emoji: "🤖", colour: "#00f", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+    const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
+    const p2 = Imperium.create_player(2, "P2", "🤖", "#00f");
     let state = Imperium.create_game_state([p1, p2]);
     return R.set(R.lensProp("currentPlayerIndex"), 0, state);
 };
@@ -73,7 +74,7 @@ Then they should pay no rent and the state remains unchanged.`,
 
             const result = Imperium.handle_landing(state);
 
-            if (result.action.type !== "property_owned_self" || result.state.players[0].money !== 1200) {
+            if (result.action.type !== "property_owned_self" || result.state.players[0].money !== gameConfig.starting_money) {
                 throw new Error(
                     "Player was charged rent for their own property: " +
                     display_state(result.state)

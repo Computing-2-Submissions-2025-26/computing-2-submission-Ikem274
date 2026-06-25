@@ -85,14 +85,25 @@ Object.assign(Imperium, gameConfig);
 
 // ── 2. Pure Initialization & Lookup Helpers ─────────────────────
 
+/**
+ * Shuffles an array using the Fisher-Yates algorithm.
+ * Returns a new shuffled copy without mutating the original.
+ * @memberof Imperium
+ * @function
+ * @param {Array} array The array to shuffle.
+ * @returns {Array} A new shuffled copy of the array.
+ */
 Imperium.shuffle_array = function (array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        // Generate a random index j such that 0 <= j <= i
+    const copy = [...array];
+    let i = copy.length - 1;
+    while (i > 0) {
         const j = Math.floor(Math.random() * (i + 1));
-        // Swap elements at indices i and j
-        [array[i], array[j]] = [array[j], array[i]];
+        const temp = copy[i];
+        copy[i] = copy[j];
+        copy[j] = temp;
+        i -= 1;
     }
-    return array;
+    return copy;
 };
 
 /**
@@ -338,7 +349,7 @@ Imperium.roll_dice = function (state) {
 
 /**
  * Moves the current player forward by a specified number of steps,
- * wrapping around the board. Collects money if passing GO.
+ * wrapping around the board. Collects money if passing Student Finance.
  * @memberof Imperium
  * @function
  * @param {Imperium.GameState} state The current game state.
@@ -400,7 +411,7 @@ Imperium.handle_landing = function (state) {
         return {
             state,
             action: {
-                type: "go",
+                type: "Student_Finance",
                 message: "Landed on Student Finance!"
             }
         };
@@ -469,11 +480,10 @@ Imperium.handle_landing = function (state) {
     }
 
     if (tile.type === "event") {
-        var stateAfterEvent = Imperium.draw_event_card(state).state;
-        var card = Imperium.draw_event_card(state).card;
+        const eventResult = Imperium.draw_event_card(state);
         return {
-            state: stateAfterEvent,
-            action: { type: "event", card }
+            state: eventResult.state,
+            action: { type: "event", card: eventResult.card }
         };
     }
 
@@ -534,7 +544,7 @@ Imperium.calculate_rent = function (state, tileId, owner) {
         return 0;
     }
 
-    const ownerIndex = state.players.indexOf(owner);
+    const ownerIndex = R.indexOf(owner, state.players);
 
     if (tile.type === "station") {
         const stationCount = countStations(state, ownerIndex);
@@ -731,12 +741,12 @@ Imperium.sell_property_upgrade = function (state, tileId) {
  */
 Imperium.end_turn = function (state) {
     const playersCount = R.length(state.players);
-    var nextIndex = (state.currentPlayerIndex + 1) % playersCount;
-    var newRound = state.round;
-
-    if (nextIndex <= state.currentPlayerIndex) {
-        newRound = newRound + 1;
-    }
+    const nextIndex = (state.currentPlayerIndex + 1) % playersCount;
+    const newRound = (
+        nextIndex <= state.currentPlayerIndex
+            ? state.round + 1
+            : state.round
+    );
 
     const advanceToNextTurn = R.mergeLeft({
         currentPlayerIndex: nextIndex,
@@ -812,17 +822,21 @@ Imperium.handle_gap_year_turn = function (state, choice) {
 
     if (diceValue === Imperium.gap_year_escape_number) {
         const escapeUpdates = { inGapYear: false, gapYearTurns: 0 };
-        var stateAfterEscape = updatePlayer(state, playerIndex, escapeUpdates);
+        const stateAfterEscape = updatePlayer(
+            state,
+            playerIndex,
+            escapeUpdates
+        );
         const diceRecorded1 = R.mergeLeft({
             lastDiceValue: diceValue,
             hasRolled: true
         });
-        stateAfterEscape = Imperium.move_player(
+        const stateAfterMove = Imperium.move_player(
             diceRecorded1(stateAfterEscape),
             diceValue
         );
 
-        return { state: stateAfterEscape, escaped: true, diceValue };
+        return { state: stateAfterMove, escaped: true, diceValue };
     }
 
     if (player.gapYearTurns > 0) {
@@ -879,61 +893,59 @@ Imperium.draw_event_card = function (state) {
         pendingEvent: card
     });
 
-    var newState = updateDeckState(state);
-    const player = Imperium.current_player(newState);
+    const baseState = updateDeckState(state);
+    const player = Imperium.current_player(baseState);
 
-    if (card.effect.type === "gain") {
-        const addMoney = R.over(
-            R.lensProp("money"),
-            R.add(card.effect.amount)
-        );
-        newState = updatePlayer(
-            newState,
-            newState.currentPlayerIndex,
-            addMoney({ money: player.money })
-        );
-    } else if (card.effect.type === "lose") {
-        const deductMoney = R.over(
-            R.lensProp("money"),
-            (money) => money - card.effect.amount
-        );
-        newState = updatePlayer(
-            newState,
-            newState.currentPlayerIndex,
-            deductMoney({ money: player.money })
-        );
-    } else if (card.effect.type === "move") {
-        const targetTile = card.effect.tileId;
-        const passedStudentFinance = (
-            player.position > targetTile &&
-            targetTile !== Imperium.gap_year_tile &&
-            targetTile !== Imperium.go_to_gap_year_tile
-        );
-
-        const moneyToAdd = (
-            passedStudentFinance
-                ? Imperium.student_finance_money
-                : 0
-        );
-        const moveUpdates = {
-            position: targetTile,
-            money: R.add(player.money, moneyToAdd)
-        };
-        newState = updatePlayer(
-            newState,
-            newState.currentPlayerIndex,
-            moveUpdates
-        );
-
-        if (targetTile === Imperium.go_to_gap_year_tile) {
-            newState = Imperium.send_to_gap_year(
-                newState,
-                newState.currentPlayerIndex
+    const applyEffect = function (currentState) {
+        if (card.effect.type === "gain") {
+            return updatePlayer(
+                currentState,
+                currentState.currentPlayerIndex,
+                { money: player.money + card.effect.amount }
             );
         }
-    }
+        if (card.effect.type === "lose") {
+            return updatePlayer(
+                currentState,
+                currentState.currentPlayerIndex,
+                { money: player.money - card.effect.amount }
+            );
+        }
+        if (card.effect.type === "move") {
+            const targetTile = card.effect.tileId;
+            const passedStudentFinance = (
+                player.position > targetTile &&
+                targetTile !== Imperium.gap_year_tile &&
+                targetTile !== Imperium.go_to_gap_year_tile
+            );
 
-    return { state: newState, card };
+            const moneyToAdd = (
+                passedStudentFinance
+                    ? Imperium.student_finance_money
+                    : 0
+            );
+            const moveUpdates = {
+                position: targetTile,
+                money: R.add(player.money, moneyToAdd)
+            };
+            const movedState = updatePlayer(
+                currentState,
+                currentState.currentPlayerIndex,
+                moveUpdates
+            );
+
+            if (targetTile === Imperium.go_to_gap_year_tile) {
+                return Imperium.send_to_gap_year(
+                    movedState,
+                    movedState.currentPlayerIndex
+                );
+            }
+            return movedState;
+        }
+        return currentState;
+    };
+
+    return { state: applyEffect(baseState), card };
 };
 
 /**
@@ -960,7 +972,7 @@ Imperium.declare_bankruptcy = function (state, playerIndex) {
     );
     const clearPropertyLevels = R.over(
         R.lensProp("propertyLevels"),
-        R.omit(playerProperties)
+        R.omit(R.map(String, playerProperties))
     );
 
     const applyBankruptcy = R.pipe(updateBankruptPlayer, clearPropertyLevels);

@@ -1,5 +1,6 @@
 import * as R from 'ramda';
 import Imperium from '../Imperium.js';
+import gameConfig from '../gameConfig.js';
 import { throw_if_invalid, display_state } from './TestHelpers.js';
 
 describe("Starting the Game", function () {
@@ -8,8 +9,8 @@ describe("Starting the Game", function () {
         When a new game is initialized,
         Then the resulting game state is valid and players start with correct defaults.`,
         function () {
-            const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
-            const p2 = { id: 2, name: "P2", emoji: "🤖", colour: "#00f", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+            const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
+            const p2 = Imperium.create_player(2, "P2", "🤖", "#00f");
 
             const state = Imperium.create_game_state([p1, p2]);
             throw_if_invalid(state);
@@ -19,7 +20,7 @@ describe("Starting the Game", function () {
             }
 
             const valid_starts = R.all(
-                (p) => p.money === 1200 && p.position === 1 && p.properties.length === 0,
+                (p) => p.money === gameConfig.starting_money && p.position === gameConfig.student_finance_tile && p.properties.length === 0,
                 state.players
             );
 
@@ -34,7 +35,7 @@ describe("Starting the Game", function () {
         When initialized,
         Then round 1 starts with the first player and rolling phase.`,
         function () {
-            const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+            const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
             const state = Imperium.create_game_state([p1]);
 
             if (state.round !== 1 || state.phase !== "roll" || state.currentPlayerIndex !== 0) {

@@ -747,7 +747,7 @@ const handleLandingUI = function () {
         case "tax":
             showToast(`${action.tileName}: Lost £${action.amount}`, "lose");
             break;
-        case "go":
+        case "Student_Finance":
             showToast("Landed on Student Finance! Collected £200", "gain");
             break;
         case "go_to_gap_year":

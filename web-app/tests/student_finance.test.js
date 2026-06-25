@@ -1,10 +1,11 @@
 import * as R from 'ramda';
 import Imperium from '../Imperium.js';
+import gameConfig from '../gameConfig.js';
 import { throw_if_invalid, display_state } from './TestHelpers.js';
 
 const get_base_state = function () {
-    const p1 = { id: 1, name: "P1", emoji: "😎", colour: "#f00", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
-    const p2 = { id: 2, name: "P2", emoji: "🤖", colour: "#00f", money: 1200, position: 1, properties: [], isBankrupt: false, inGapYear: false, gapYearTurns: 0 };
+    const p1 = Imperium.create_player(1, "P1", "😎", "#f00");
+    const p2 = Imperium.create_player(2, "P2", "🤖", "#00f");
     let state = Imperium.create_game_state([p1, p2]);
     state = R.set(R.lensProp("firstMove"), false, state);
     return R.set(R.lensProp("currentPlayerIndex"), 0, state);
@@ -23,7 +24,7 @@ describe("Student Finance", function () {
             const new_state = Imperium.move_player(state, 4);
             throw_if_invalid(new_state);
 
-            if (new_state.players[0].money !== 1400) {
+            if (new_state.players[0].money !== gameConfig.starting_money + gameConfig.student_finance_money) {
                 throw new Error(
                     "Player did not collect £200 after passing Student Finance: " +
                     display_state(new_state)
@@ -43,7 +44,7 @@ describe("Student Finance", function () {
             const steps = Imperium.total_tiles - 26 + 1;
             const new_state = Imperium.move_player(state, steps);
 
-            if (new_state.players[0].money !== 1400) {
+            if (new_state.players[0].money !== gameConfig.starting_money + gameConfig.student_finance_money) {
                 throw new Error(
                     "Player did not collect £200 after landing directly on Student Finance: " +
                     display_state(new_state)
